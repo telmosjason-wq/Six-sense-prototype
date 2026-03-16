@@ -1,7 +1,8 @@
 import {
   INDUSTRIES, SIZES, REVENUES, TECHS, STAGES, INTENTS, ABM_TIERS,
   FIRST_NAMES, LAST_NAMES, TITLES, ARCHETYPES, DOMAINS, SUFFIXES,
-  KEYWORDS, LOCATIONS, CONTENT_ITEMS
+  KEYWORDS, LOCATIONS, CONTENT_ITEMS, AUDIENCES_DEFAULT, SIGNAL_CONFIGS_DEFAULT,
+  WORKFLOWS_DEFAULT, PRODUCTS, BUYING_STAGES_DEFAULT, COMPETITORS
 } from './constants';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -32,6 +33,29 @@ export function generateAccounts(n = 100) {
       firstSeen: randDate(180), volume: randInt(1, 100)
     }));
 
+    // Generate per-product scoring
+    const scoring = {};
+    PRODUCTS.forEach(prod => {
+      const intentScore = randInt(0, 100);
+      const buyingStage = BUYING_STAGES_DEFAULT.find(s => intentScore >= s.range[0] && intentScore <= s.range[1]) || BUYING_STAGES_DEFAULT[0];
+      const icpFit = randInt(0, 100);
+      const qualScore = (intentScore >= 80 && icpFit >= 80) ? randInt(80, 100) : (intentScore >= 60 && icpFit >= 60) ? randInt(40, 70) : randInt(0, 39);
+      const churnRisk = randInt(0, 100);
+      const compRiskLevel = rand(["High","Medium","Low","None"]);
+      scoring[prod.id] = {
+        intentScore,
+        buyingStage: buyingStage.stage,
+        buyingStageName: buyingStage.name,
+        icpFit,
+        qualificationScore: qualScore,
+        qualified: qualScore >= 70,
+        churnRisk,
+        competitiveRisk: compRiskLevel,
+        competitor: compRiskLevel !== "None" ? rand(COMPETITORS) : null,
+        pipeline: qualScore >= 70 ? randInt(20, 500) * 1000 : 0,
+      };
+    });
+
     accounts.push({
       id: `ACC-${String(i + 1).padStart(4, "0")}`,
       name, domain,
@@ -55,6 +79,7 @@ export function generateAccounts(n = 100) {
       audiences: [],
       engagement: [],
       signalFields: {},
+      scoring,
       sixsenseScore: randInt(10, 99),
       lastActivity: randDate(30),
       contactCount: 8,
@@ -193,7 +218,36 @@ export function generateContacts(accounts) {
           fromAccountId: fc.id, fromAccountName: fc.name, fromTitle: fc.title,
           confidence, status: "Active"
         });
+
+        // Activity on PERSON record
         pushAct("Signal Fired", detectedDate, `Job Change: ${fullName} moved from ${fc.name} to ${acc.name}`, "contact", null, fullName, { signalType: "Job Change" });
+        // Activity on TO ACCOUNT record
+        pushAct("Signal Fired", detectedDate, `Job Change (Derived): New ${title} — ${fullName} from ${fc.name}`, "account", acc.id, acc.name, { signalType: "Job Change", direction: "Incoming" });
+        // Activity on FROM ACCOUNT record
+        if (fromAccount) {
+          pushAct("Signal Fired", detectedDate, `Job Change (Derived): ${fc.title} departed — ${fullName} to ${acc.name}`, "account", fc.id, fromAccount.name, { signalType: "Job Change", direction: "Departure" });
+        }
+
+        // Auto-populate signal-derived Iterative audiences
+        const sigConfig = SIGNAL_CONFIGS_DEFAULT.find(s => s.name.includes("Job Change"));
+        if (sigConfig?.targetAudiences) {
+          sigConfig.targetAudiences.forEach(audName => {
+            // Add to TO account
+            if (!acc.audiences.some(a => a.name === audName)) {
+              acc.audiences.push({ name: audName, type: "Iterative", joinedDate: detectedDate, status: "Active", viaSignal: "Job Change", signalEventId: evtId });
+            }
+            // Add to FROM account
+            if (fromAccount && !fromAccount.audiences.some(a => a.name === audName)) {
+              fromAccount.audiences.push({ name: audName, type: "Iterative", joinedDate: detectedDate, status: "Active", viaSignal: "Job Change", signalEventId: evtId });
+            }
+          });
+        }
+
+        // Workflow trigger activity
+        const triggeredWorkflows = WORKFLOWS_DEFAULT.filter(w => w.triggerSignal === "SIG-001");
+        triggeredWorkflows.forEach(wf => {
+          pushAct("Workflow Triggered", detectedDate, `"${wf.name}" triggered by Job Change signal for ${fullName}`, "account", acc.id, acc.name, { workflow: wf.name, triggerSignal: "Job Change" });
+        });
       }
 
       // ── Contact engagement + content consumption ──
@@ -284,6 +338,15 @@ export function generateContacts(accounts) {
         directOn: "account", toAccountId: acc.id, toAccountName: acc.name, detail, status: "Active"
       });
       pushAct("Signal Fired", detectedDate, `Funding Event: ${detail}`, "account", acc.id, acc.name, { signalType: "Funding Event" });
+      // Auto-populate Iterative audiences
+      const sigConfig = SIGNAL_CONFIGS_DEFAULT.find(s => s.name.includes("Funding"));
+      if (sigConfig?.targetAudiences) {
+        sigConfig.targetAudiences.forEach(audName => {
+          if (!acc.audiences.some(a => a.name === audName)) {
+            acc.audiences.push({ name: audName, type: "Iterative", joinedDate: detectedDate, status: "Active", viaSignal: "Funding Event", signalEventId: evtId });
+          }
+        });
+      }
     }
   });
 
@@ -309,6 +372,20 @@ export function generateContacts(accounts) {
         detail: `${openRoles} open AI Engineer roles`, status
       });
       pushAct("Signal Fired", detectedDate, `Hiring Trend: ${openRoles} AI Engineer roles`, "account", acc.id, acc.name, { signalType: "Hiring Trend" });
+      // Auto-populate Iterative audiences
+      const sigConfig = SIGNAL_CONFIGS_DEFAULT.find(s => s.name.includes("Hiring"));
+      if (sigConfig?.targetAudiences) {
+        sigConfig.targetAudiences.forEach(audName => {
+          if (!acc.audiences.some(a => a.name === audName)) {
+            acc.audiences.push({ name: audName, type: "Iterative", joinedDate: detectedDate, status: "Active", viaSignal: "Hiring Trend", signalEventId: evtId });
+          }
+        });
+      }
+      // Workflow trigger activity
+      const triggeredWorkflows = WORKFLOWS_DEFAULT.filter(w => w.triggerSignal === "SIG-003");
+      triggeredWorkflows.forEach(wf => {
+        pushAct("Workflow Triggered", detectedDate, `"${wf.name}" triggered by Hiring Trend signal`, "account", acc.id, acc.name, { workflow: wf.name, triggerSignal: "Hiring Trend" });
+      });
     }
   });
 

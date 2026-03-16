@@ -3,7 +3,7 @@ import { C } from './components/ui/theme';
 import { Badge, Btn, Inp, Stat, Score, TH, TR, TD, EmptyState, SectionLabel } from './components/ui';
 import { Icons } from './components/Icons';
 import { generateAccounts, generateContacts, getSignalEvents, getAllActivities, rand, randInt, randDate } from './data/generators';
-import { SIGNAL_CONFIGS_DEFAULT, AUDIENCES_DEFAULT, CONTENT_ITEMS, EXT_SYSTEMS } from './data/constants';
+import { SIGNAL_CONFIGS_DEFAULT, AUDIENCES_DEFAULT, WORKFLOWS_DEFAULT, CONTENT_ITEMS, EXT_SYSTEMS } from './data/constants';
 import AccountDetail from './modals/AccountDetail';
 import ContactDetail from './modals/ContactDetail';
 import ContentDetail from './modals/ContentDetail';
@@ -279,6 +279,67 @@ export default function App() {
                   </div>
                 )}
                 <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}><Stat label="Events" value={events.length} /><Stat label="Accounts" value={affAcct.length} color={C.orange} />{isJC && <Stat label="Contacts" value={affCon.length} color={C.purple} sub="Direct" />}</div>
+
+                {/* Signal → Audience → Workflow Chain */}
+                {(() => {
+                  const targetAuds = (cfg.targetAudiences || []).map(name => {
+                    const audDef = AUDIENCES_DEFAULT.find(a => a.name === name);
+                    const memberCount = accounts.filter(a => a.audiences.some(au => au.name === name)).length;
+                    return { name, def: audDef, memberCount };
+                  });
+                  const targetWfs = (cfg.targetWorkflows || []).map(wid => WORKFLOWS_DEFAULT.find(w => w.id === wid)).filter(Boolean);
+                  // Also find workflows triggered by audiences fed by this signal
+                  const audWfs = targetAuds.flatMap(a => (a.def?.usedByWorkflows || []).map(wid => WORKFLOWS_DEFAULT.find(w => w.id === wid)).filter(Boolean));
+                  const allWfs = [...new Map([...targetWfs, ...audWfs].map(w => [w.id, w])).values()];
+
+                  if (targetAuds.length === 0 && allWfs.length === 0) return null;
+                  return (
+                    <div style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.accent}20`, background: `linear-gradient(135deg, ${C.accent}04, ${C.purple}04)`, marginBottom: 24 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.accent, marginBottom: 16 }}>Signal → Audience → Workflow Chain</div>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                        {/* Signal */}
+                        <div style={{ padding: "10px 16px", borderRadius: 8, border: `2px solid ${C.orange}60`, background: C.orange + "10", minWidth: 140, textAlign: "center" }}>
+                          <div style={{ fontSize: 10, color: C.orange, textTransform: "uppercase", fontWeight: 700, marginBottom: 4 }}>Signal</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{cfg.name.split(" (")[0]}</div>
+                          <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{events.length} events fired</div>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 12, color: C.textDim }}>→</div>
+
+                        {/* Audiences */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          {targetAuds.map((a, i) => (
+                            <div key={i} style={{ padding: "10px 16px", borderRadius: 8, border: `2px solid ${C.purple}60`, background: C.purple + "10", minWidth: 160, cursor: "pointer" }}
+                              onClick={() => { const audDef = AUDIENCES_DEFAULT.find(x => x.name === a.name); if (audDef) setAudienceView(audDef); setSection("audiences"); }}>
+                              <div style={{ fontSize: 10, color: C.purple, textTransform: "uppercase", fontWeight: 700, marginBottom: 4 }}>
+                                {a.def?.type || "Iterative"} Audience
+                              </div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{a.name}</div>
+                              <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{a.memberCount} members</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {allWfs.length > 0 && <>
+                          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 12, color: C.textDim }}>→</div>
+
+                          {/* Workflows */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {allWfs.map((w, i) => (
+                              <div key={i} style={{ padding: "10px 16px", borderRadius: 8, border: `2px solid ${C.green}60`, background: C.green + "10", minWidth: 180, cursor: "pointer" }}
+                                onClick={() => { setWorkflowBuilder(w.id.toLowerCase().replace("wf-00", "wf")); }}>
+                                <div style={{ fontSize: 10, color: C.green, textTransform: "uppercase", fontWeight: 700, marginBottom: 4 }}>Workflow</div>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{w.name}</div>
+                                <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{w.status} · {w.runs} runs</div>
+                              </div>
+                            ))}
+                          </div>
+                        </>}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Event Ledger</h4>
                 <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
                   {events.map(evt => (
@@ -424,11 +485,16 @@ export default function App() {
           {section === "audiences" && !audienceView && (
             <div>
               <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-                <Stat label="Audiences" value="3" /><Stat label="Dynamic" value="1" color={C.accent} /><Stat label="Static" value="1" color={C.textMuted} /><Stat label="Iterative" value="1" color={C.purple} />
+                <Stat label="Audiences" value={AUDIENCES_DEFAULT.length} />
+                <Stat label="Dynamic" value={AUDIENCES_DEFAULT.filter(a => a.type === "Dynamic").length} color={C.accent} />
+                <Stat label="Static" value={AUDIENCES_DEFAULT.filter(a => a.type === "Static").length} color={C.textMuted} />
+                <Stat label="Iterative" value={AUDIENCES_DEFAULT.filter(a => a.type === "Iterative").length} color={C.purple} />
               </div>
               <div style={{ display: "grid", gap: 16 }}>
                 {AUDIENCES_DEFAULT.map((a, i) => {
                   const count = accounts.filter(ac => ac.audiences.some(au => au.name === a.name)).length;
+                  const srcSignals = (a.sourceSignals || []).map(sid => SIGNAL_CONFIGS_DEFAULT.find(s => s.id === sid)).filter(Boolean);
+                  const usedWfs = (a.usedByWorkflows || []).map(wid => WORKFLOWS_DEFAULT.find(w => w.id === wid)).filter(Boolean);
                   return (
                     <div key={i} style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgCard }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -436,7 +502,19 @@ export default function App() {
                         <span style={{ fontSize: 24, fontWeight: 700, color: C.accent }}>{count}</span>
                       </div>
                       <div style={{ fontSize: 12, color: C.textMuted }}>Criteria: {a.criteria}</div>
-                      <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>Updated: {a.lastUpdated}</div>
+                      {srcSignals.length > 0 && (
+                        <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: C.textDim }}>Fed by:</span>
+                          {srcSignals.map(s => <Badge key={s.id} color={C.orange} small>{s.name.split(" (")[0]}</Badge>)}
+                        </div>
+                      )}
+                      {usedWfs.length > 0 && (
+                        <div style={{ display: "flex", gap: 6, marginTop: 6, alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: C.textDim }}>Used by:</span>
+                          {usedWfs.map(w => <Badge key={w.id} color={C.green} small>{w.name}</Badge>)}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>Updated: {a.lastUpdated}</div>
                       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                         <Btn small onClick={() => setAudienceView(a)}>View Members</Btn><Btn small>Edit</Btn><Btn small>Export</Btn>
                       </div>
@@ -570,6 +648,7 @@ export default function App() {
               accounts={accounts}
               contacts={contacts}
               signalEvents={signalEvents}
+              allActivities={allActivities}
               onAccountClick={a => setSelectedAccount(a)}
               onContactClick={c => setSelectedContact(c)}
             />
