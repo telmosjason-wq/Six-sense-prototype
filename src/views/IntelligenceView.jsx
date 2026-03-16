@@ -91,8 +91,22 @@ export default function IntelligenceView({ accounts, contacts, signalEvents, onA
   const [tab, setTab] = useState("graph");
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedGraphNode, setSelectedGraphNode] = useState(null);
-  const graphWidth = 700;
-  const graphHeight = 440;
+  const containerRef = useRef(null);
+  const [dims, setDims] = useState({ w: 700, h: 440 });
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setDims({ w: entry.contentRect.width, h: Math.max(400, entry.contentRect.height) });
+      }
+    });
+    ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [tab]);
+
+  const graphWidth = dims.w;
+  const graphHeight = dims.h;
 
   // Build graph data from real data
   const { graphNodes, graphLinks } = useMemo(() => {
@@ -171,7 +185,7 @@ export default function IntelligenceView({ accounts, contacts, signalEvents, onA
 
       {tab === "graph" && (
         <div style={{ display: "flex", gap: 16 }}>
-          <div style={{ flex: 1, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgPanel, position: "relative", overflow: "hidden" }}>
+          <div ref={containerRef} style={{ flex: 1, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgPanel, position: "relative", overflow: "hidden", minHeight: 440 }}>
             <svg width={graphWidth} height={graphHeight} style={{ display: "block" }}>
               {/* Links */}
               {graphLinks.map((l, i) => {

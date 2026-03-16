@@ -36,6 +36,8 @@ export default function App() {
   const [tableCols, setTableCols] = useState(["name","industry","abmTier","intentLevel","sixsenseScore","stage","lastActivity"]);
   const [addColOpen, setAddColOpen] = useState(false);
   const [activityFilter, setActivityFilter] = useState("All");
+  const [actDateFrom, setActDateFrom] = useState("");
+  const [actDateTo, setActDateTo] = useState("");
   const [audienceView, setAudienceView] = useState(null);
   const [audTableCols, setAudTableCols] = useState(["name","industry","intentLevel","sixsenseScore","abmTier","lastActivity"]);
   const [audAddCol, setAudAddCol] = useState(false);
@@ -82,9 +84,11 @@ export default function App() {
   const filteredActivities = useMemo(() => {
     let list = [...allActivities];
     if (activityFilter !== "All") list = list.filter(a => a.type === activityFilter);
+    if (actDateFrom) list = list.filter(a => a.date >= actDateFrom);
+    if (actDateTo) list = list.filter(a => a.date <= actDateTo);
     if (search) list = list.filter(a => a.detail.toLowerCase().includes(search.toLowerCase()) || a.entityName.toLowerCase().includes(search.toLowerCase()));
     return list;
-  }, [allActivities, activityFilter, search]);
+  }, [allActivities, activityFilter, actDateFrom, actDateTo, search]);
 
   const toggleSort = (f) => { if (sortField === f) setSortDir(d => d === "desc" ? "asc" : "desc"); else { setSortField(f); setSortDir("desc"); } };
 
@@ -95,6 +99,7 @@ export default function App() {
     if (col === "stage") return <Badge color={C.blue} small>{a.stage}</Badge>;
     if (col === "abmTier") return <Badge color={a.abmTier === "1:1" ? C.accent : a.abmTier === "1:Few" ? C.purple : C.textMuted} small>{a.abmTier}</Badge>;
     if (col === "buyingGroupCoverage") return <Score value={a.buyingGroupCoverage} />;
+    if (col === "joinedDate") { const aud = a.audiences?.find(au => audienceView && au.name === audienceView.name); return <span style={{ color: C.textDim }}>{aud?.joinedDate || "—"}</span>; }
     if (col === "techStack") return <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{a.techStack.slice(0, 3).map(t => <Badge key={t} color={C.purple} small>{t}</Badge>)}{a.techStack.length > 3 && <Badge color={C.textDim} small>+{a.techStack.length - 3}</Badge>}</div>;
     const colDef = allCols.find(c => c.key === col);
     if (colDef?.external) return <span style={{ color: C.textMuted, fontSize: 12 }}>{col.includes("Score") || col.includes("%") ? randInt(10, 99) + "%" : col.includes("Date") ? randDate(30) : col.includes("$") || col.includes("ARR") || col.includes("Amount") ? "$" + randInt(10, 500) + "K" : rand(["Active","Engaged","MQL","SQL","Opportunity"])}</span>;
@@ -140,7 +145,7 @@ export default function App() {
           <div style={{ display: "flex", gap: 8 }}>
             {section === "signals" && !signalDetailView && <Btn primary small onClick={() => setNewSignal(true)}>{Icons.plus} New Signal</Btn>}
             {section === "audiences" && !audienceView && <Btn primary small onClick={() => setAudienceBuilder(true)}>{Icons.plus} Create Audience</Btn>}
-            {section === "workflows" && <Btn primary small onClick={() => setWorkflowBuilder(true)}>{Icons.plus} New Workflow</Btn>}
+            {section === "workflows" && <Btn primary small onClick={() => setWorkflowBuilder("new")}>{Icons.plus} New Workflow</Btn>}
             <Btn small onClick={() => setRevvyOpen(true)}>{Icons.bot} RevvyAI</Btn>
           </div>
         </div>
@@ -311,6 +316,59 @@ export default function App() {
                   ))}
                   {events.length === 0 && <EmptyState text="No events fired yet." />}
                 </div>
+
+                {/* Associated Accounts Table */}
+                {affAcct.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Associated Accounts ({affAcct.length})</h4>
+                    <div style={{ borderRadius: 8, border: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, maxHeight: 260 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead><tr><TH>Account</TH><TH>Signal Detail</TH><TH>Type</TH><TH>Direction</TH><TH>Date</TH><TH>Status</TH></tr></thead>
+                        <tbody>
+                          {affAcct.map(a => {
+                            const sigs = a.signals.filter(s => s.signalConfig === cfgType);
+                            return sigs.map((sig, si) => (
+                              <TR key={`${a.id}-${si}`} onClick={() => setSelectedAccount(a)}>
+                                <TD><span style={{ fontWeight: 600, color: C.text }}>{a.name}</span></TD>
+                                <TD><span style={{ color: C.textMuted, maxWidth: 220, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sig.detail}</span></TD>
+                                <TD><Badge color={sig.subtype === "Direct" ? C.accent : C.purple} small>{sig.subtype}</Badge></TD>
+                                <TD>{sig.direction ? <Badge color={sig.direction === "Incoming" ? C.green : C.red} small>{sig.direction}</Badge> : <span style={{ color: C.textDim }}>—</span>}</TD>
+                                <TD><span style={{ color: C.textDim }}>{sig.detectedDate}</span></TD>
+                                <TD><Badge color={sig.status === "Active" ? C.green : C.textMuted} small>{sig.status}</Badge></TD>
+                              </TR>
+                            ));
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Associated Contacts Table (job change) */}
+                {isJC && affCon.length > 0 && (
+                  <div>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Associated Contacts — Direct Signals ({affCon.length})</h4>
+                    <div style={{ borderRadius: 8, border: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, maxHeight: 260 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead><tr><TH>Contact</TH><TH>Title</TH><TH>Account</TH><TH>Signal Detail</TH><TH>Date</TH></tr></thead>
+                        <tbody>
+                          {affCon.map(c => {
+                            const sig = c.signals.find(s => s.signalConfig === cfgType);
+                            return (
+                              <TR key={c.id} onClick={() => setSelectedContact(c)}>
+                                <TD><div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 24, height: 24, borderRadius: "50%", background: C.accent + "20", color: C.accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>{c.name.split(" ").map(n => n[0]).join("")}</div><span style={{ fontWeight: 600, color: C.text }}>{c.name}</span><Badge color={C.accent} small>Direct</Badge></div></TD>
+                                <TD><span style={{ color: C.textMuted }}>{c.title}</span></TD>
+                                <TD><span style={{ color: C.textMuted }}>{c.accountName}</span></TD>
+                                <TD><span style={{ color: C.textMuted, maxWidth: 220, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sig?.detail}</span></TD>
+                                <TD><span style={{ color: C.textDim }}>{sig?.detectedDate}</span></TD>
+                              </TR>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -324,7 +382,7 @@ export default function App() {
                 <Stat label="Email" value={allActivities.filter(a => a.type.includes("Email")).length} color={C.blue} />
                 <Stat label="Syncs" value={allActivities.filter(a => a.type.includes("Sync")).length} color={C.purple} />
               </div>
-              <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
                 {["All", ...new Set(allActivities.map(a => a.type))].map(t => (
                   <button key={t} onClick={() => setActivityFilter(t)} style={{
                     padding: "4px 12px", borderRadius: 20, border: `1px solid ${activityFilter === t ? C.accent : C.border}`,
@@ -333,6 +391,13 @@ export default function App() {
                     fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit"
                   }}>{t}</button>
                 ))}
+                <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: C.textDim }}>From:</span>
+                  <input type="date" value={actDateFrom} onChange={e => setActDateFrom(e.target.value)} style={{ padding: "4px 8px", borderRadius: 6, border: `1px solid ${C.border}`, background: C.bgPanel, color: C.text, fontSize: 11, fontFamily: "inherit", outline: "none" }} />
+                  <span style={{ fontSize: 11, color: C.textDim }}>To:</span>
+                  <input type="date" value={actDateTo} onChange={e => setActDateTo(e.target.value)} style={{ padding: "4px 8px", borderRadius: 6, border: `1px solid ${C.border}`, background: C.bgPanel, color: C.text, fontSize: 11, fontFamily: "inherit", outline: "none" }} />
+                  {(actDateFrom || actDateTo) && <button onClick={() => { setActDateFrom(""); setActDateTo(""); }} style={{ background: "none", border: "none", color: C.red, cursor: "pointer", fontSize: 11, fontFamily: "inherit" }}>Clear</button>}
+                </div>
               </div>
               <div style={{ borderRadius: 8, border: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, maxHeight: "calc(100vh - 340px)" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -388,9 +453,23 @@ export default function App() {
             const allAudCols = [
               { key: "name", label: "Account" },{ key: "industry", label: "Industry" },{ key: "abmTier", label: "ABM Tier" },
               { key: "intentLevel", label: "Intent" },{ key: "sixsenseScore", label: "6sense Score" },{ key: "stage", label: "Stage" },
-              { key: "lastActivity", label: "Last Activity" },{ key: "buyingGroupCoverage", label: "BG Coverage" },
+              { key: "joinedDate", label: "Joined Date" },{ key: "lastActivity", label: "Last Activity" },{ key: "buyingGroupCoverage", label: "BG Coverage" },
               ...extCols.map(ec => ({ key: ec.key, label: `${ec.key} (${ec.source})`, external: true }))
             ];
+            // Build membership log with joined + removed events
+            const membershipLog = [];
+            members.forEach(a => {
+              const aud = a.audiences.find(au => au.name === audienceView.name);
+              if (aud) membershipLog.push({ date: aud.joinedDate, action: "Joined", name: a.name, reason: "met criteria" });
+            });
+            // For Dynamic audiences, add some simulated "removed" events
+            if (audienceView.type === "Dynamic") {
+              const nonMembers = accounts.filter(a => !a.audiences.some(au => au.name === audienceView.name)).slice(0, 4);
+              nonMembers.forEach(a => {
+                membershipLog.push({ date: randDate(90), action: "Removed", name: a.name, reason: "criteria no longer met" });
+              });
+            }
+            membershipLog.sort((a, b) => b.date.localeCompare(a.date));
             return (
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -417,19 +496,16 @@ export default function App() {
                   </table>
                 </div>
                 <div style={{ marginTop: 16, padding: 16, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgPanel }}>
-                  <SectionLabel>Membership Log</SectionLabel>
+                  <SectionLabel>Membership Log {audienceView.type === "Dynamic" && <span style={{ color: C.textDim, fontWeight: 400 }}>(accounts can be added and removed)</span>}</SectionLabel>
                   <div style={{ display: "grid", gap: 4 }}>
-                    {members.slice(0, 8).map((a, i) => {
-                      const aud = a.audiences.find(au => au.name === audienceView.name);
-                      return (
-                        <div key={i} style={{ display: "flex", gap: 12, fontSize: 12, alignItems: "center" }}>
-                          <span style={{ color: C.textDim, minWidth: 80 }}>{aud?.joinedDate}</span>
-                          <Badge color={C.green} small>Joined</Badge>
-                          <span style={{ color: C.text }}>{a.name}</span>
-                          <span style={{ color: C.textDim }}>met criteria</span>
-                        </div>
-                      );
-                    })}
+                    {membershipLog.slice(0, 12).map((entry, i) => (
+                      <div key={i} style={{ display: "flex", gap: 12, fontSize: 12, alignItems: "center" }}>
+                        <span style={{ color: C.textDim, minWidth: 80 }}>{entry.date}</span>
+                        <Badge color={entry.action === "Joined" ? C.green : C.red} small>{entry.action}</Badge>
+                        <span style={{ color: C.text }}>{entry.name}</span>
+                        <span style={{ color: C.textDim }}>{entry.reason}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -473,11 +549,11 @@ export default function App() {
           {section === "workflows" && (
             <div style={{ display: "grid", gap: 16 }}>
               {[
-                { name: "High-Intent → AI Email → Sales Alert", status: "Active", trigger: "Signal: Intent Score > 70", actions: 4, lastRun: "2026-03-16", runs: 234 },
-                { name: "New Champion → Buying Group Enrichment", status: "Active", trigger: "Signal: Job Change (Champion)", actions: 3, lastRun: "2026-03-15", runs: 47 },
-                { name: "AI Hiring → ABM Campaign", status: "Paused", trigger: "Signal: Hiring Trend (AI Engineers)", actions: 5, lastRun: "2026-03-10", runs: 89 },
+                { id: "wf1", name: "High-Intent → AI Email → Sales Alert", status: "Active", trigger: "Signal: Intent Score > 70", actions: 4, lastRun: "2026-03-16", runs: 234 },
+                { id: "wf2", name: "New Champion → Buying Group Enrichment", status: "Active", trigger: "Signal: Job Change (Champion)", actions: 3, lastRun: "2026-03-15", runs: 47 },
+                { id: "wf3", name: "AI Hiring → ABM Campaign", status: "Paused", trigger: "Signal: Hiring Trend (AI Engineers)", actions: 5, lastRun: "2026-03-10", runs: 89 },
               ].map((w, i) => (
-                <div key={i} onClick={() => setWorkflowBuilder(true)} style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgCard, cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.borderColor = C.accent + "40"} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                <div key={i} onClick={() => setWorkflowBuilder(w.id)} style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.border}`, background: C.bgCard, cursor: "pointer" }} onMouseEnter={e => e.currentTarget.style.borderColor = C.accent + "40"} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{w.name}</span>
                     <Badge color={w.status === "Active" ? C.green : C.orange} small>{w.status}</Badge>
@@ -503,14 +579,14 @@ export default function App() {
       </div>
 
       {/* Modals */}
-      {selectedAccount && <AccountDetail account={selectedAccount} contacts={contacts} allActivities={allActivities} onClose={() => setSelectedAccount(null)} onContactClick={c => { setSelectedAccount(null); setSelectedContact(c); }} />}
-      {selectedContact && <ContactDetail contact={selectedContact} allActivities={allActivities} onClose={() => setSelectedContact(null)} />}
+      {selectedAccount && <AccountDetail account={selectedAccount} contacts={contacts} allActivities={allActivities} onClose={() => setSelectedAccount(null)} onContactClick={c => { setSelectedAccount(null); setSelectedContact(c); }} onContentClick={ct => { setSelectedAccount(null); setSelectedContent(ct); }} />}
+      {selectedContact && <ContactDetail contact={selectedContact} allActivities={allActivities} onClose={() => setSelectedContact(null)} onAccountClick={accId => { const a = accounts.find(x => x.id === accId); if (a) { setSelectedContact(null); setSelectedAccount(a); }}} onContentClick={ct => { setSelectedContact(null); setSelectedContent(ct); }} />}
       {selectedContent && <ContentDetail content={selectedContent} contacts={contacts} accounts={accounts} onClose={() => setSelectedContent(null)} onAccountClick={a => { setSelectedContent(null); setSelectedAccount(a); }} onContactClick={c => { setSelectedContent(null); setSelectedContact(c); }} />}
       {signalModal && <SignalConfigModal signal={signalModal} onClose={() => setSignalModal(null)} onSave={() => setSignalModal(null)} />}
       {newSignal && <SignalConfigModal isNew onClose={() => setNewSignal(false)} onSave={(config) => { setSignalConfigs([...signalConfigs, { id: `SIG-${signalConfigs.length + 1}`, ...config, status: "Active" }]); setNewSignal(false); }} />}
       {audienceBuilder && <AudienceBuilder onClose={() => setAudienceBuilder(false)} accounts={accounts} />}
       {enrichModal && <EnrichModal onClose={() => setEnrichModal(false)} onAdd={cols => { setExtCols(prev => [...prev, ...cols.filter(c => !prev.some(p => p.key === c.key))]); }} />}
-      {workflowBuilder && <WorkflowBuilder onClose={() => setWorkflowBuilder(false)} />}
+      {workflowBuilder && <WorkflowBuilder workflowId={workflowBuilder} onClose={() => setWorkflowBuilder(false)} />}
       {revvyOpen && <RevvyAI onClose={() => setRevvyOpen(false)} accounts={accounts} contacts={contacts} />}
     </div>
   );

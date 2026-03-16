@@ -2,13 +2,27 @@ import React, { useState } from 'react';
 import { C } from '../components/ui/theme';
 import { Badge, Btn, Tab, Modal, Stat, Score, SectionLabel, FieldGrid, SignalFieldsPanel, EmptyState } from '../components/ui';
 import { Icons } from '../components/Icons';
+import { CONTENT_ITEMS } from '../data/constants';
 
-export default function AccountDetail({ account: a, contacts, allActivities, onClose, onContactClick }) {
+export default function AccountDetail({ account: a, contacts, allActivities, onClose, onContactClick, onContentClick }) {
   const [tab, setTab] = useState("overview");
   const ac = contacts.filter(c => c.accountId === a.id);
   const bg = ac.filter(c => c.isBuyingGroup);
   const acActs = allActivities.filter(x => x.entityId === a.id || ac.some(c => c.id === x.entityId));
-  const tabs = ["overview","contacts","signals","activities","audiences","intelligence"];
+  // Derive content history from contacts' content consumption
+  const contentHistory = [];
+  const seenContent = new Set();
+  ac.forEach(c => {
+    (c.contentConsumed || []).forEach(cc => {
+      const ct = (typeof CONTENT_ITEMS !== 'undefined' ? CONTENT_ITEMS : []).find(x => x.id === cc.contentId);
+      if (ct) {
+        contentHistory.push({ ...cc, contentTitle: ct.title, contentType: ct.type, contactName: c.name, contactId: c.id, content: ct });
+        seenContent.add(ct.id);
+      }
+    });
+  });
+  contentHistory.sort((a, b) => b.date.localeCompare(a.date));
+  const tabs = ["overview","contacts","signals","content","activities","audiences","intelligence"];
 
   return (
     <Modal title={a.name} onClose={onClose} wide>
@@ -129,6 +143,34 @@ export default function AccountDetail({ account: a, contacts, allActivities, onC
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === "content" && (
+        <div>
+          <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 16 }}>
+            {contentHistory.length} content interactions across {seenContent.size} unique pieces
+          </div>
+          {contentHistory.length === 0 && <EmptyState text="No content engagement from contacts at this account" />}
+          <div style={{ display: "grid", gap: 8 }}>
+            {contentHistory.map((ch, i) => (
+              <div key={i} style={{
+                display: "flex", gap: 12, padding: "10px 14px", borderRadius: 6,
+                border: `1px solid ${C.border}`, fontSize: 12, alignItems: "center",
+                cursor: onContentClick ? "pointer" : "default"
+              }}
+                onClick={() => onContentClick && onContentClick(ch.content)}
+                onMouseEnter={e => { if (onContentClick) e.currentTarget.style.background = C.bgHover; }}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <span style={{ color: C.textDim, minWidth: 80 }}>{ch.date}</span>
+                <Badge color={C.blue} small>{ch.type}</Badge>
+                <span style={{ color: onContentClick ? C.accent : C.text, flex: 1, fontWeight: 500 }}>{ch.contentTitle}</span>
+                <Badge color={C.purple} small>{ch.contentType}</Badge>
+                <span style={{ color: C.textDim, fontSize: 11 }}>{ch.contactName}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { C } from '../components/ui/theme';
-import { Badge, Tab, Modal, Score, SectionLabel, FieldGrid, SignalFieldsPanel, EmptyState } from '../components/ui';
+import { Badge, Btn, Tab, Modal, Score, SectionLabel, FieldGrid, SignalFieldsPanel, EmptyState } from '../components/ui';
 import { Icons } from '../components/Icons';
 import { CONTENT_ITEMS } from '../data/constants';
 
-export default function ContactDetail({ contact: c, allActivities, onClose }) {
+export default function ContactDetail({ contact: c, allActivities, onClose, onAccountClick, onContentClick }) {
   const [tab, setTab] = useState("overview");
   const cActs = allActivities.filter(a => a.entityId === c.id);
   const tabs = ["overview","activities","signals","buying group","intelligence"];
@@ -19,18 +19,48 @@ export default function ContactDetail({ contact: c, allActivities, onClose }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           <div>
             <SectionLabel>Contact Info</SectionLabel>
-            <FieldGrid data={[["Title", c.title],["Email", c.email],["Phone", c.phone],["LinkedIn", c.linkedin],["Account", c.accountName]]} />
+            <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "8px 16px", fontSize: 13 }}>
+              <span style={{ color: C.textMuted }}>Title</span>
+              <span style={{ color: C.text }}>{c.title}</span>
+              <span style={{ color: C.textMuted }}>Email</span>
+              <span style={{ color: C.text, wordBreak: "break-all" }}>{c.email}</span>
+              <span style={{ color: C.textMuted }}>Phone</span>
+              <span style={{ color: C.text }}>{c.phone}</span>
+              <span style={{ color: C.textMuted }}>LinkedIn</span>
+              <a href={`https://${c.linkedin}`} target="_blank" rel="noopener noreferrer"
+                style={{ color: C.accent, textDecoration: "none", wordBreak: "break-all" }}
+                onClick={e => e.stopPropagation()}>
+                {c.linkedin} ↗
+              </a>
+              <span style={{ color: C.textMuted }}>Account</span>
+              {onAccountClick ? (
+                <span style={{ color: C.accent, cursor: "pointer" }}
+                  onClick={() => onAccountClick(c.accountId)}>
+                  {c.accountName} →
+                </span>
+              ) : (
+                <span style={{ color: C.text }}>{c.accountName}</span>
+              )}
+            </div>
             <div style={{ marginTop: 12 }}><Score value={c.score} /></div>
             <SignalFieldsPanel fields={c.signalFields} />
           </div>
           <div>
             <SectionLabel>Role History</SectionLabel>
-            <div style={{ fontSize: 13, color: C.text, marginBottom: 6 }}>
+            <div style={{ fontSize: 13, color: C.text, marginBottom: 8 }}>
               {c.title} at {c.accountName} <Badge color={C.green} small>Current</Badge>
             </div>
             {c.formerCompanies.map((fc, i) => (
-              <div key={i} style={{ fontSize: 12, color: C.textMuted, marginBottom: 4 }}>
-                {fc.title} at {fc.name} <span style={{ color: C.textDim }}>({fc.from} — {fc.to})</span>
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 8, marginBottom: 6,
+                padding: "6px 10px", borderRadius: 6, border: `1px solid ${C.border}`,
+                background: C.bgPanel, cursor: onAccountClick ? "pointer" : "default"
+              }} onClick={() => onAccountClick && onAccountClick(fc.id)}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: C.text }}>{fc.title} at <span style={{ color: C.accent }}>{fc.name}</span></div>
+                  <div style={{ fontSize: 11, color: C.textDim }}>{fc.from} — {fc.to}</div>
+                </div>
+                {onAccountClick && <span style={{ color: C.accent, fontSize: 11 }}>→</span>}
               </div>
             ))}
             {c.formerCompanies.length === 0 && <div style={{ fontSize: 12, color: C.textDim }}>No prior companies tracked</div>}
@@ -40,10 +70,17 @@ export default function ContactDetail({ contact: c, allActivities, onClose }) {
               {c.contentConsumed && c.contentConsumed.length > 0 ? c.contentConsumed.map((cc, i) => {
                 const ct = CONTENT_ITEMS.find(x => x.id === cc.contentId);
                 return (
-                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                  <div key={i} style={{
+                    display: "flex", gap: 8, alignItems: "center", marginBottom: 6,
+                    padding: "4px 8px", borderRadius: 4,
+                    cursor: onContentClick && ct ? "pointer" : "default"
+                  }} onClick={() => onContentClick && ct && onContentClick(ct)}
+                    onMouseEnter={e => { if (onContentClick && ct) e.currentTarget.style.background = C.bgHover; }}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
                     <Badge color={C.blue} small>{cc.type}</Badge>
-                    <span style={{ fontSize: 12, color: C.text }}>{ct?.title || cc.contentId}</span>
-                    <span style={{ fontSize: 11, color: C.textDim }}>{cc.date}</span>
+                    <span style={{ fontSize: 12, color: onContentClick && ct ? C.accent : C.text }}>{ct?.title || cc.contentId}</span>
+                    <span style={{ fontSize: 11, color: C.textDim, marginLeft: "auto" }}>{cc.date}</span>
                   </div>
                 );
               }) : <div style={{ fontSize: 12, color: C.textDim }}>No content consumption tracked</div>}

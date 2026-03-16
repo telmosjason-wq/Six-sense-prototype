@@ -135,20 +135,46 @@ function NodeConfigPanel({ node, onUpdate, onDelete }) {
   );
 }
 
-export default function WorkflowBuilder({ onClose }) {
-  const [nodes, setNodes] = useState([
-    { id: 1, type: "trigger", label: "Signal: Hiring Trend (AI Engineers)", x: 300, y: 40, config: { triggerType: "signal_fires", signalName: "Hiring Trend" } },
-    { id: 2, type: "decision", label: "Intent Score > 70?", x: 300, y: 160, config: { decisionType: "filter", field: "intentScore", operator: ">", value: "70" } },
-    { id: 3, type: "action", label: "Add to High-Intent Audience", x: 140, y: 300, config: { actionType: "add_audience", audienceName: "High-Intent Enterprise" } },
-    { id: 4, type: "action", label: "Send AI Email Sequence", x: 140, y: 420, config: { actionType: "ai_email", sequence: "Enterprise Inbound" } },
-    { id: 5, type: "action", label: "Add to Nurture Audience", x: 460, y: 300, config: { actionType: "add_audience", audienceName: "AI Adopters" } },
+const WORKFLOW_PRESETS = {
+  wf1: {
+    title: "High-Intent → AI Email → Sales Alert",
+    nodes: [
+      { id: 1, type: "trigger", label: "Signal: Intent Score > 70", x: 300, y: 40, config: { triggerType: "signal_fires", signalName: "Intent Score" } },
+      { id: 2, type: "decision", label: "ABM Tier = 1:1?", x: 300, y: 160, config: { decisionType: "filter", field: "abmTier", operator: "=", value: "1:1" } },
+      { id: 3, type: "action", label: "Send Personalized AI Email", x: 140, y: 300, config: { actionType: "ai_email", sequence: "Executive Outreach" } },
+      { id: 4, type: "action", label: "Slack Alert to AE", x: 140, y: 420, config: { actionType: "slack", channel: "#sales-alerts", message: "High-intent 1:1 account detected" } },
+      { id: 5, type: "action", label: "Add to Scaled Nurture", x: 460, y: 300, config: { actionType: "ai_email", sequence: "Scaled Nurture" } },
+    ],
+    connections: [{ from: 1, to: 2, label: "" },{ from: 2, to: 3, label: "Yes" },{ from: 2, to: 5, label: "No" },{ from: 3, to: 4, label: "" }],
+  },
+  wf2: {
+    title: "New Champion → Buying Group Enrichment",
+    nodes: [
+      { id: 1, type: "trigger", label: "Signal: Job Change (Champion)", x: 300, y: 40, config: { triggerType: "signal_fires", signalName: "Job Change" } },
+      { id: 2, type: "llm", label: "LLM: Assess champion likelihood", x: 300, y: 160, config: { prompt: "Given this contact's history, assess champion likelihood at new account", outputVar: "champion_score" } },
+      { id: 3, type: "action", label: "Enrich Buying Group", x: 300, y: 300, config: { actionType: "enrich", source: "6sense", fields: "buying_group" } },
+    ],
+    connections: [{ from: 1, to: 2, label: "" },{ from: 2, to: 3, label: "" }],
+  },
+  wf3: {
+    title: "AI Hiring → ABM Campaign",
+    nodes: [
+      { id: 1, type: "trigger", label: "Signal: Hiring AI Engineers", x: 300, y: 40, config: { triggerType: "signal_fires", signalName: "Hiring Trend" } },
+      { id: 2, type: "decision", label: "Open roles > 5?", x: 300, y: 160, config: { decisionType: "filter", field: "hiring_ai_count", operator: ">", value: "5" } },
+      { id: 3, type: "action", label: "Launch Display Ad Campaign", x: 140, y: 300, config: { actionType: "ad_campaign", campaign: "AI Adopters Display" } },
+      { id: 4, type: "action", label: "Add to AI Adopters Audience", x: 460, y: 300, config: { actionType: "add_audience", audienceName: "AI Adopters" } },
+      { id: 5, type: "action", label: "Sync to Marketo", x: 300, y: 420, config: { actionType: "sync_map", system: "Marketo", list: "AI Hiring Trend" } },
+    ],
+    connections: [{ from: 1, to: 2, label: "" },{ from: 2, to: 3, label: "Yes" },{ from: 2, to: 4, label: "No" },{ from: 3, to: 5, label: "" }],
+  },
+};
+
+export default function WorkflowBuilder({ onClose, workflowId }) {
+  const preset = WORKFLOW_PRESETS[workflowId];
+  const [nodes, setNodes] = useState(preset ? preset.nodes : [
+    { id: 1, type: "trigger", label: "New Trigger", x: 300, y: 60, config: {} },
   ]);
-  const [connections, setConnections] = useState([
-    { from: 1, to: 2, label: "" },
-    { from: 2, to: 3, label: "Yes" },
-    { from: 2, to: 5, label: "No" },
-    { from: 3, to: 4, label: "" },
-  ]);
+  const [connections, setConnections] = useState(preset ? preset.connections : []);
   const [selectedNode, setSelectedNode] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [connecting, setConnecting] = useState(null);
@@ -206,7 +232,7 @@ export default function WorkflowBuilder({ onClose }) {
   const selectedNodeData = nodes.find(n => n.id === selectedNode);
 
   return (
-    <Modal title="Workflow Builder" onClose={onClose} wide>
+    <Modal title={preset ? preset.title : "New Workflow"} onClose={onClose} wide>
       <div style={{ display: "flex", gap: 16, height: 540 }}>
         {/* Canvas */}
         <div
