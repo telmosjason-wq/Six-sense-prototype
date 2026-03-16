@@ -24,9 +24,20 @@ export function getAllActivities() { return _allActivities; }
 export function generateAccounts(n = 100) {
   const accounts = [];
   for (let i = 0; i < n; i++) {
-    const domain = rand(DOMAINS) + (i > 19 ? i : "") + rand(SUFFIXES);
-    const name = domain.split(".")[0].charAt(0).toUpperCase() + domain.split(".")[0].slice(1);
-    const abmTier = rand(ABM_TIERS);
+    // Pin hero accounts for demo
+    let name, domain, industry, size, revenue, location, abmTier, intentLevel;
+    if (i === 0) {
+      name = "Vertexai"; domain = "vertexai.com"; industry = "SaaS"; size = "1,000-5,000";
+      revenue = "$500M"; location = "San Francisco, CA"; abmTier = "1:1"; intentLevel = "High";
+    } else if (i === 1) {
+      name = "LiveRamp"; domain = "liveramp.com"; industry = "SaaS"; size = "1,000-5,000";
+      revenue = "$500M"; location = "San Francisco, CA"; abmTier = "1:Few"; intentLevel = "Medium";
+    } else {
+      domain = rand(DOMAINS) + (i > 19 ? i : "") + rand(SUFFIXES);
+      name = domain.split(".")[0].charAt(0).toUpperCase() + domain.split(".")[0].slice(1);
+      abmTier = rand(ABM_TIERS); intentLevel = rand(INTENTS);
+      industry = rand(INDUSTRIES); size = rand(SIZES); revenue = rand(REVENUES); location = rand(LOCATIONS);
+    }
     const techStack = randN(TECHS, randInt(3, 8));
     const keywordActivity = randN(KEYWORDS, randInt(1, 5)).map(k => ({
       keyword: k, trend: rand(["Rising","Stable","Declining"]),
@@ -59,14 +70,14 @@ export function generateAccounts(n = 100) {
     accounts.push({
       id: `ACC-${String(i + 1).padStart(4, "0")}`,
       name, domain,
-      industry: rand(INDUSTRIES),
-      size: rand(SIZES),
-      revenue: rand(REVENUES),
-      location: rand(LOCATIONS),
-      stage: rand(STAGES),
-      intentScore: randInt(0, 100),
-      intentLevel: rand(INTENTS),
-      abmTier,
+      industry: industry || rand(INDUSTRIES),
+      size: size || rand(SIZES),
+      revenue: revenue || rand(REVENUES),
+      location: location || rand(LOCATIONS),
+      stage: i === 0 ? "Decision" : i === 1 ? "Consideration" : rand(STAGES),
+      intentScore: i === 0 ? 87 : i === 1 ? 55 : randInt(0, 100),
+      intentLevel: intentLevel || rand(INTENTS),
+      abmTier: abmTier || rand(ABM_TIERS),
       abmStrategy: abmTier === "1:1" ? "Dedicated AE + custom content + exec sponsorship"
         : abmTier === "1:Few" ? "Cluster campaigns + personalized outreach"
         : "Programmatic ads + scaled nurture",
@@ -151,24 +162,38 @@ export function generateContacts(accounts) {
     for (let j = 0; j < 8; j++) {
       const isBuyingGroup = j < 5;
       const archetype = isBuyingGroup ? usedArchetypes[j] : null;
-      const isHidden = randBool(0.35);
-      const firstName = rand(FIRST_NAMES);
-      const lastName = rand(LAST_NAMES);
-      const fullName = `${firstName} ${lastName}`;
-      const title = rand(TITLES);
+      const isHidden = (acc.id === "ACC-0001" && j === 0) ? false : randBool(0.35);
 
-      const formerCompanies = randBool(0.4)
-        ? randN(accounts.filter(a => a.id !== acc.id), randInt(1, 2)).map(a => ({
-            name: a.name, id: a.id, title: rand(TITLES),
-            from: randDate(730), to: randDate(365)
-          }))
-        : [];
+      // Pin hero contact
+      let firstName, lastName, fullName, title;
+      if (acc.id === "ACC-0001" && j === 0) {
+        firstName = "Kim"; lastName = "Chen"; fullName = "Kim Chen"; title = "CPO";
+      } else {
+        firstName = rand(FIRST_NAMES); lastName = rand(LAST_NAMES);
+        fullName = `${firstName} ${lastName}`; title = rand(TITLES);
+      }
+
+      // Pin Kim Chen's former company as LiveRamp
+      let formerCompanies;
+      if (acc.id === "ACC-0001" && j === 0) {
+        const liveRamp = accounts.find(a => a.id === "ACC-0002");
+        formerCompanies = [{ name: liveRamp?.name || "LiveRamp", id: "ACC-0002", title: "CPO", from: "2021-03-15", to: "2025-11-01" }];
+      } else {
+        formerCompanies = randBool(0.4)
+          ? randN(accounts.filter(a => a.id !== acc.id), randInt(1, 2)).map(a => ({
+              name: a.name, id: a.id, title: rand(TITLES),
+              from: randDate(730), to: randDate(365)
+            }))
+          : [];
+      }
 
       const signals = [];
       const signalFields = {};
 
-      // ── Job Change linked signal chain (~5% of contacts with former companies) ──
-      if (formerCompanies.length > 0 && randBool(0.05)) {
+      // ── Job Change linked signal chain ──
+      // Force for Kim Chen; ~5% for others with former companies
+      const shouldFireJobChange = (acc.id === "ACC-0001" && j === 0) || (formerCompanies.length > 0 && randBool(0.05));
+      if (shouldFireJobChange && formerCompanies.length > 0) {
         const fc = formerCompanies[0];
         const detectedDate = randDate(90);
         const evtId = `EVT-${String(eventId++).padStart(4, "0")}`;

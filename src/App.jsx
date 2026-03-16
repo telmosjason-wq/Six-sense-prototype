@@ -12,6 +12,8 @@ import { SignalConfigModal, AudienceBuilder, EnrichModal } from './modals/Shared
 import WorkflowBuilder from './modals/WorkflowBuilder';
 import IntelligenceView from './views/IntelligenceView';
 import RevvyAI from './modals/RevvyAI';
+import DemoOverlay from './components/DemoOverlay';
+import { HERO } from './data/demoScript';
 
 export default function App() {
   const [accounts] = useState(() => generateAccounts(100));
@@ -43,7 +45,8 @@ export default function App() {
   const [audTableCols, setAudTableCols] = useState(["name","industry","intentLevel","sixsenseScore","abmTier","lastActivity"]);
   const [audAddCol, setAudAddCol] = useState(false);
   const [extCols, setExtCols] = useState([]);
-  const [uiMode, setUiMode] = useState("light"); // "light" = new Crisp style, "dark" = original
+  const [uiMode, setUiMode] = useState("light");
+  const [demoActive, setDemoActive] = useState(false); // "light" = new Crisp style, "dark" = original
 
   const nav = [
     { key: "accounts", icon: Icons.accounts, label: "Accounts" },
@@ -133,7 +136,17 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div style={{ padding: "12px 16px", borderTop: `1px solid ${C.border}`, fontSize: 10, color: C.textDim }}>Prototype · Sample Data</div>
+        <div style={{ padding: "8px 8px 12px" }}>
+          <button onClick={() => setDemoActive(true)} style={{
+            width: "100%", padding: "10px 12px", borderRadius: 8, border: "none",
+            background: "linear-gradient(135deg, #0D9488, #7C3AED)", color: "#fff",
+            fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 8, justifyContent: "center"
+          }}>
+            🎯 Start Demo
+          </button>
+        </div>
+        <div style={{ padding: "8px 16px 12px", borderTop: `1px solid ${C.border}`, fontSize: 10, color: C.textDim }}>Prototype · Sample Data</div>
       </div>
 
       {/* Main */}
@@ -687,6 +700,50 @@ export default function App() {
       {enrichModal && <EnrichModal onClose={() => setEnrichModal(false)} onAdd={cols => { setExtCols(prev => [...prev, ...cols.filter(c => !prev.some(p => p.key === c.key))]); }} />}
       {workflowBuilder && <WorkflowBuilder workflowId={workflowBuilder} onClose={() => setWorkflowBuilder(false)} />}
       {revvyOpen && <RevvyAI onClose={() => setRevvyOpen(false)} accounts={accounts} contacts={contacts} />}
+
+      {/* Demo Overlay */}
+      {demoActive && (
+        <DemoOverlay
+          onClose={() => setDemoActive(false)}
+          onNavigate={(sec) => {
+            setSection(sec);
+            setSignalDetailView(null);
+            setAudienceView(null);
+            setSelectedAccount(null);
+            setSelectedContact(null);
+          }}
+          onAction={(action, step) => {
+            if (action === "open-account") {
+              const hero = accounts.find(a => a.id === HERO.accountId) || accounts[0];
+              setSelectedAccount(hero);
+            }
+            if (action === "open-contact") {
+              const heroCon = contacts.find(c => c.accountId === HERO.accountId && c.isBuyingGroup && c.archetype === "Champion") || contacts.find(c => c.accountId === HERO.accountId && !c.isHidden) || contacts[0];
+              setSelectedAccount(null);
+              setSelectedContact(heroCon);
+            }
+            if (action === "navigate-signals") {
+              setSelectedContact(null);
+              setSection("signals");
+            }
+            if (action === "open-signal-detail") {
+              const sigCfg = signalConfigs.find(s => s.name.includes("Job Change"));
+              if (sigCfg) setSignalDetailView(sigCfg);
+            }
+            if (action === "navigate-audiences") {
+              setSignalDetailView(null);
+              setSection("audiences");
+            }
+            if (action === "open-audience") {
+              const aud = AUDIENCES_DEFAULT.find(a => a.name === HERO.audienceName);
+              if (aud) setAudienceView(aud);
+            }
+            if (action === "open-drawer") {
+              // The drawer is inside AccountsView — we just note it for narration
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
