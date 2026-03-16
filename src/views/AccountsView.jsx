@@ -53,7 +53,7 @@ function ScorePill({ value, max = 100 }) {
   );
 }
 
-export default function AccountsView({ accounts, search, onSearch, onAccountClick, onEnrich, extCols, allCols: allColsProp }) {
+export default function AccountsView({ accounts, search, onSearch, onAccountClick, onEnrich, extCols, onToggleMode }) {
   const [sortField, setSortField] = useState("sixsenseScore");
   const [sortDir, setSortDir] = useState("desc");
   const [tableCols, setTableCols] = useState(["name","industry","abmTier","intentLevel","sixsenseScore","stage","lastActivity"]);
@@ -147,6 +147,11 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
             <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: `1px solid ${L.border}`, background: L.bgCard, color: L.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
               ≡ List View
             </button>
+            {onToggleMode && (
+              <button onClick={onToggleMode} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: `1px solid ${L.border}`, background: L.bgCard, color: L.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                🌙 Dark View
+              </button>
+            )}
             <button onClick={onEnrich} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "none", background: L.accent, color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
               + Add Column
             </button>

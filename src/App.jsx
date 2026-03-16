@@ -43,6 +43,7 @@ export default function App() {
   const [audTableCols, setAudTableCols] = useState(["name","industry","intentLevel","sixsenseScore","abmTier","lastActivity"]);
   const [audAddCol, setAudAddCol] = useState(false);
   const [extCols, setExtCols] = useState([]);
+  const [uiMode, setUiMode] = useState("light"); // "light" = new Crisp style, "dark" = original
 
   const nav = [
     { key: "accounts", icon: Icons.accounts, label: "Accounts" },
@@ -136,9 +137,9 @@ export default function App() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: section === "accounts" ? L.bg : C.bg }}>
-        {/* Header - hidden for accounts (has its own) */}
-        {section !== "accounts" && (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: (section === "accounts" && uiMode === "light") ? L.bg : C.bg }}>
+        {/* Header - hidden for accounts light mode (has its own) */}
+        {!(section === "accounts" && uiMode === "light") && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", borderBottom: `1px solid ${C.border}`, background: C.bgPanel }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.text }}>{nav.find(n => n.key === section)?.label}</h2>
@@ -154,10 +155,10 @@ export default function App() {
         )}
 
         {/* Content Area */}
-        <div style={{ flex: 1, overflow: "auto", padding: section === "accounts" ? 0 : 24 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: (section === "accounts" && uiMode === "light") ? 0 : 24 }}>
 
           {/* ── ACCOUNTS ── */}
-          {section === "accounts" && (
+          {section === "accounts" && uiMode === "light" && (
             <AccountsView
               accounts={accounts}
               search={search}
@@ -165,7 +166,40 @@ export default function App() {
               onAccountClick={a => setSelectedAccount(a)}
               onEnrich={() => setEnrichModal(true)}
               extCols={extCols}
+              onToggleMode={() => setUiMode("dark")}
             />
+          )}
+          {section === "accounts" && uiMode === "dark" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <Stat label="Total" value={accounts.length} />
+                  <Stat label="High Intent" value={accounts.filter(a => a.intentLevel === "High").length} color={C.green} />
+                  <Stat label="1:1 Accounts" value={accounts.filter(a => a.abmTier === "1:1").length} color={C.accent} sub="Named" />
+                  <Stat label="Active Signals" value={accounts.reduce((s, a) => s + a.signals.length, 0)} color={C.orange} />
+                </div>
+                <button onClick={() => setUiMode("light")} style={{ padding: "6px 14px", borderRadius: 6, border: `1px solid ${C.borderLight}`, background: "transparent", color: C.accent, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                  Switch to Light View ↗
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center", position: "relative", flexWrap: "wrap" }}>
+                <span style={{ fontSize: 11, color: C.textMuted }}>Columns:</span>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {tableCols.map(c => <Badge key={c} color={C.accent} small>{allCols.find(ac => ac.key === c)?.label || c}<button onClick={() => setTableCols(tableCols.filter(x => x !== c))} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", padding: 0, marginLeft: 4, fontSize: 12, fontFamily: "inherit" }}>×</button></Badge>)}
+                </div>
+                <Btn small onClick={() => setAddColOpen(!addColOpen)}>{Icons.plus} Column</Btn>
+                <Btn small onClick={() => setEnrichModal(true)}>{Icons.ext} Enrich</Btn>
+                {addColOpen && <div style={{ position: "absolute", top: "100%", right: 80, zIndex: 100, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, padding: 8, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", minWidth: 160 }}>
+                  {allCols.filter(c => !tableCols.includes(c.key)).map(c => <div key={c.key} onClick={() => { setTableCols([...tableCols, c.key]); setAddColOpen(false); }} style={{ padding: "6px 12px", fontSize: 12, color: C.text, cursor: "pointer", borderRadius: 4 }} onMouseEnter={e => e.currentTarget.style.background = C.bgHover} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>{c.label}</div>)}
+                </div>}
+              </div>
+              <div style={{ borderRadius: 8, border: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, maxHeight: "calc(100vh - 300px)" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead><tr>{tableCols.map(col => <TH key={col} onClick={() => toggleSort(col)} active={sortField === col}>{allCols.find(c => c.key === col)?.label || col} {sortField === col && (sortDir === "desc" ? "↓" : "↑")}</TH>)}</tr></thead>
+                  <tbody>{filteredAccounts.map(a => <TR key={a.id} onClick={() => setSelectedAccount(a)}>{tableCols.map(col => <TD key={col}>{renderCell(a, col)}</TD>)}</TR>)}</tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           {/* ── CONTACTS ── */}
