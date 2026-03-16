@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { C } from './components/ui/theme';
+import { C, L } from './components/ui/theme';
 import { Badge, Btn, Inp, Stat, Score, TH, TR, TD, EmptyState, SectionLabel } from './components/ui';
 import { Icons } from './components/Icons';
 import { generateAccounts, generateContacts, getSignalEvents, getAllActivities, rand, randInt, randDate } from './data/generators';
 import { SIGNAL_CONFIGS_DEFAULT, AUDIENCES_DEFAULT, WORKFLOWS_DEFAULT, CONTENT_ITEMS, EXT_SYSTEMS } from './data/constants';
 import AccountDetail from './modals/AccountDetail';
+import AccountsView from './views/AccountsView';
 import ContactDetail from './modals/ContactDetail';
 import ContentDetail from './modals/ContentDetail';
 import { SignalConfigModal, AudienceBuilder, EnrichModal } from './modals/SharedModals';
@@ -135,51 +136,36 @@ export default function App() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", borderBottom: `1px solid ${C.border}`, background: C.bgPanel }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{nav.find(n => n.key === section)?.label}</h2>
-            <Inp value={search} onChange={setSearch} placeholder="Search..." icon={Icons.search} style={{ width: 280 }} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: section === "accounts" ? L.bg : C.bg }}>
+        {/* Header - hidden for accounts (has its own) */}
+        {section !== "accounts" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", borderBottom: `1px solid ${C.border}`, background: C.bgPanel }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.text }}>{nav.find(n => n.key === section)?.label}</h2>
+              <Inp value={search} onChange={setSearch} placeholder="Search..." icon={Icons.search} style={{ width: 280 }} />
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {section === "signals" && !signalDetailView && <Btn primary small onClick={() => setNewSignal(true)}>{Icons.plus} New Signal</Btn>}
+              {section === "audiences" && !audienceView && <Btn primary small onClick={() => setAudienceBuilder(true)}>{Icons.plus} Create Audience</Btn>}
+              {section === "workflows" && <Btn primary small onClick={() => setWorkflowBuilder("new")}>{Icons.plus} New Workflow</Btn>}
+              <Btn small onClick={() => setRevvyOpen(true)}>{Icons.bot} RevvyAI</Btn>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {section === "signals" && !signalDetailView && <Btn primary small onClick={() => setNewSignal(true)}>{Icons.plus} New Signal</Btn>}
-            {section === "audiences" && !audienceView && <Btn primary small onClick={() => setAudienceBuilder(true)}>{Icons.plus} Create Audience</Btn>}
-            {section === "workflows" && <Btn primary small onClick={() => setWorkflowBuilder("new")}>{Icons.plus} New Workflow</Btn>}
-            <Btn small onClick={() => setRevvyOpen(true)}>{Icons.bot} RevvyAI</Btn>
-          </div>
-        </div>
+        )}
 
         {/* Content Area */}
-        <div style={{ flex: 1, overflow: "auto", padding: 24 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: section === "accounts" ? 0 : 24 }}>
 
           {/* ── ACCOUNTS ── */}
           {section === "accounts" && (
-            <div>
-              <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-                <Stat label="Total" value={accounts.length} />
-                <Stat label="High Intent" value={accounts.filter(a => a.intentLevel === "High").length} color={C.green} />
-                <Stat label="1:1 Accounts" value={accounts.filter(a => a.abmTier === "1:1").length} color={C.accent} sub="Named" />
-                <Stat label="Active Signals" value={accounts.reduce((s, a) => s + a.signals.length, 0)} color={C.orange} />
-              </div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "center", position: "relative", flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, color: C.textMuted }}>Columns:</span>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                  {tableCols.map(c => <Badge key={c} color={C.accent} small>{allCols.find(ac => ac.key === c)?.label || c}<button onClick={() => setTableCols(tableCols.filter(x => x !== c))} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", padding: 0, marginLeft: 4, fontSize: 12, fontFamily: "inherit" }}>×</button></Badge>)}
-                </div>
-                <Btn small onClick={() => setAddColOpen(!addColOpen)}>{Icons.plus} Column</Btn>
-                <Btn small onClick={() => setEnrichModal(true)}>{Icons.ext} Enrich</Btn>
-                {addColOpen && <div style={{ position: "absolute", top: "100%", right: 80, zIndex: 100, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 8, padding: 8, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", minWidth: 160 }}>
-                  {allCols.filter(c => !tableCols.includes(c.key)).map(c => <div key={c.key} onClick={() => { setTableCols([...tableCols, c.key]); setAddColOpen(false); }} style={{ padding: "6px 12px", fontSize: 12, color: C.text, cursor: "pointer", borderRadius: 4 }} onMouseEnter={e => e.currentTarget.style.background = C.bgHover} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>{c.label}</div>)}
-                </div>}
-              </div>
-              <div style={{ borderRadius: 8, border: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, maxHeight: "calc(100vh - 300px)" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead><tr>{tableCols.map(col => <TH key={col} onClick={() => toggleSort(col)} active={sortField === col}>{allCols.find(c => c.key === col)?.label || col} {sortField === col && (sortDir === "desc" ? "↓" : "↑")}</TH>)}</tr></thead>
-                  <tbody>{filteredAccounts.map(a => <TR key={a.id} onClick={() => setSelectedAccount(a)}>{tableCols.map(col => <TD key={col}>{renderCell(a, col)}</TD>)}</TR>)}</tbody>
-                </table>
-              </div>
-            </div>
+            <AccountsView
+              accounts={accounts}
+              search={search}
+              onSearch={setSearch}
+              onAccountClick={a => setSelectedAccount(a)}
+              onEnrich={() => setEnrichModal(true)}
+              extCols={extCols}
+            />
           )}
 
           {/* ── CONTACTS ── */}

@@ -1,3 +1,4 @@
+// Dark sidebar palette
 export const C = {
   bg: "#0a0e17",
   bgCard: "#111827",
@@ -15,4 +16,30 @@ export const C = {
   purple: "#a78bfa",
   blue: "#60a5fa",
   pink: "#f472b6",
+};
+
+// Light main content palette
+export const L = {
+  bg: "#f8f9fb",
+  bgCard: "#ffffff",
+  bgHover: "#f1f3f7",
+  bgPanel: "#f3f4f8",
+  border: "#e5e7eb",
+  borderLight: "#d1d5db",
+  text: "#1a1d23",
+  textMuted: "#6b7280",
+  textDim: "#9ca3af",
+  accent: "#0891b2",
+  accentLight: "#ecfeff",
+  green: "#059669",
+  greenLight: "#ecfdf5",
+  orange: "#d97706",
+  orangeLight: "#fffbeb",
+  red: "#dc2626",
+  redLight: "#fef2f2",
+  purple: "#7c3aed",
+  purpleLight: "#f5f3ff",
+  blue: "#2563eb",
+  blueLight: "#eff6ff",
+  pink: "#db2777",
 };
