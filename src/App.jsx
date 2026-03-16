@@ -7,7 +7,9 @@ import { SIGNAL_CONFIGS_DEFAULT, AUDIENCES_DEFAULT, CONTENT_ITEMS, EXT_SYSTEMS }
 import AccountDetail from './modals/AccountDetail';
 import ContactDetail from './modals/ContactDetail';
 import ContentDetail from './modals/ContentDetail';
-import { SignalConfigModal, AudienceBuilder, EnrichModal, WorkflowBuilder } from './modals/SharedModals';
+import { SignalConfigModal, AudienceBuilder, EnrichModal } from './modals/SharedModals';
+import WorkflowBuilder from './modals/WorkflowBuilder';
+import IntelligenceView from './views/IntelligenceView';
 import RevvyAI from './modals/RevvyAI';
 
 export default function App() {
@@ -488,34 +490,13 @@ export default function App() {
 
           {/* ── INTELLIGENCE GRAPH ── */}
           {section === "graph" && (
-            <div>
-              <div style={{ padding: 24, borderRadius: 12, border: `1px solid ${C.accent}30`, background: `linear-gradient(135deg, ${C.accent}05, ${C.purple}08)`, marginBottom: 24 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}><span style={{ color: C.accent }}>{Icons.graph}</span><h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.accent }}>Contextual Intelligence Graph</h3></div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                  <Stat label="Entities" value="900" sub="Accounts + Contacts" color={C.accent} />
-                  <Stat label="Relationships" value="2.4K" sub="Cross-entity connections" color={C.purple} />
-                  <Stat label="Insights" value={randInt(30, 60)} sub="Surfaced this week" color={C.green} />
-                </div>
-              </div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Active Insights</h4>
-              <div style={{ display: "grid", gap: 16 }}>
-                <div style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.green}30`, background: C.green + "08" }}>
-                  <Badge color={C.green} small>OPPORTUNITY</Badge>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginTop: 8, marginBottom: 8 }}>Champion pattern detected at 3 accounts</div>
-                  <div style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>Kim was previously CPO at LiveRamp where she championed Jira. She recently joined as CPO at a target account currently using ProductBoard (a Jira competitor). The account is showing new keyword activity related to "project management alternatives" and ProductBoard usage metrics are declining. Cross-referencing with Kim's history at Cisco — the graph identifies a high-confidence opportunity for Jira and a churn risk for ProductBoard.</div>
-                </div>
-                <div style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.red}30`, background: C.red + "08" }}>
-                  <Badge color={C.red} small>CHURN RISK</Badge>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginTop: 8, marginBottom: 8 }}>2 accounts showing multi-signal churn indicators</div>
-                  <div style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>Product usage declining 30% MoM, identified detractor recently promoted to VP, and competitor keyword research activity spiking. Recommend immediate executive outreach and success plan review.</div>
-                </div>
-                <div style={{ padding: 20, borderRadius: 8, border: `1px solid ${C.orange}30`, background: C.orange + "08" }}>
-                  <Badge color={C.orange} small>TREND</Badge>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginTop: 8, marginBottom: 8 }}>AI Engineering hiring wave across {accounts.filter(a => a.signalFields?.hiring_ai).length} target accounts</div>
-                  <div style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>Multiple accounts in your pipeline are aggressively hiring AI/ML engineers. This correlates with increased keyword research for "AI infrastructure" and "ML ops" tools. Recommend creating a targeted campaign for technical decision-makers at these accounts.</div>
-                </div>
-              </div>
-            </div>
+            <IntelligenceView
+              accounts={accounts}
+              contacts={contacts}
+              signalEvents={signalEvents}
+              onAccountClick={a => setSelectedAccount(a)}
+              onContactClick={c => setSelectedContact(c)}
+            />
           )}
 
         </div>
