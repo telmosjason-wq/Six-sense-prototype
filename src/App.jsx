@@ -13,7 +13,7 @@ import WorkflowBuilder from './modals/WorkflowBuilder';
 import IntelligenceView from './views/IntelligenceView';
 import RevvyAI from './modals/RevvyAI';
 import DemoOverlay from './components/DemoOverlay';
-import { HERO } from './data/demoScript';
+import { HERO, DEMO_STEPS } from './data/demoScript';
 
 export default function App() {
   const [accounts] = useState(() => generateAccounts(100));
@@ -46,7 +46,7 @@ export default function App() {
   const [audAddCol, setAudAddCol] = useState(false);
   const [extCols, setExtCols] = useState([]);
   const [uiMode, setUiMode] = useState("light");
-  const [demoActive, setDemoActive] = useState(false); // "light" = new Crisp style, "dark" = original
+  const [demoStep, setDemoStep] = useState(-1); // -1 = inactive // "light" = new Crisp style, "dark" = original
 
   const nav = [
     { key: "accounts", icon: Icons.accounts, label: "Accounts" },
@@ -113,6 +113,35 @@ export default function App() {
 
   const actColor = (type) => type.includes("Signal") ? C.orange : type.includes("Email") ? C.blue : type.includes("Sync") ? C.purple : type.includes("Ad") ? C.pink : type.includes("Agent") ? C.accent : type.includes("Content") ? C.green : type.includes("Workflow") ? C.orange : C.textMuted;
 
+  // ── Demo action executor ──
+  const [demoAccountTab, setDemoAccountTab] = useState(null);
+  const [demoContactTab, setDemoContactTab] = useState(null);
+
+  const executeDemoStep = (idx) => {
+    if (idx < 0 || idx >= DEMO_STEPS.length) { setDemoStep(-1); setDemoAccountTab(null); setDemoContactTab(null); return; }
+    const step = DEMO_STEPS[idx];
+    setDemoStep(idx);
+    // Execute all actions for this step
+    (step.actions || []).forEach(action => {
+      if (action === "close-all") { setSelectedAccount(null); setSelectedContact(null); setSelectedContent(null); setSignalDetailView(null); setAudienceView(null); setDemoAccountTab(null); setDemoContactTab(null); }
+      if (action === "close-modals") { setSelectedAccount(null); setSelectedContact(null); setSelectedContent(null); setDemoAccountTab(null); setDemoContactTab(null); }
+      if (action.startsWith("navigate:")) { const sec = action.split(":")[1]; setSection(sec); setSignalDetailView(null); setAudienceView(null); }
+      if (action === "open-account") { const hero = accounts.find(a => a.id === HERO.accountId) || accounts[0]; setSelectedContact(null); setSelectedAccount(hero); setDemoAccountTab("overview"); }
+      if (action.startsWith("open-account-tab:")) { const t = action.split(":")[1]; setDemoAccountTab(t); }
+      if (action === "open-contact") {
+        const heroCon = contacts.find(c => c.accountId === HERO.accountId && c.isBuyingGroup && c.archetype === "Champion") || contacts.find(c => c.accountId === HERO.accountId && !c.isHidden) || contacts[0];
+        setSelectedAccount(null); setSelectedContact(heroCon); setDemoContactTab("overview");
+      }
+      if (action.startsWith("open-contact-tab:")) { const t = action.split(":")[1]; setDemoContactTab(t); }
+      if (action === "open-signal-detail") { const sig = signalConfigs.find(s => s.name.includes("Job Change")); if (sig) setSignalDetailView(sig); }
+      if (action === "open-audience") { const aud = AUDIENCES_DEFAULT.find(a => a.name === HERO.audienceName); if (aud) { setSection("audiences"); setAudienceView(aud); } }
+      if (action === "open-drawer") { /* handled via prop to AccountsView */ }
+      if (action === "close-drawer") { /* AccountsView watches demoDrawerOpen going false */ }
+    });
+  };
+
+  const demoStepData = demoStep >= 0 ? DEMO_STEPS[demoStep] : null;
+
   return (
     <div style={{ display: "flex", height: "100vh", fontFamily: "'DM Sans', 'Satoshi', system-ui, sans-serif", background: C.bg, color: C.text, fontSize: 13, overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -137,7 +166,7 @@ export default function App() {
           ))}
         </nav>
         <div style={{ padding: "8px 8px 12px" }}>
-          <button onClick={() => setDemoActive(true)} style={{
+          <button onClick={() => executeDemoStep(0)} style={{
             width: "100%", padding: "10px 12px", borderRadius: 8, border: "none",
             background: "linear-gradient(135deg, #0D9488, #7C3AED)", color: "#fff",
             fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
@@ -180,6 +209,7 @@ export default function App() {
               onEnrich={() => setEnrichModal(true)}
               extCols={extCols}
               onToggleMode={() => setUiMode("dark")}
+              demoDrawerOpen={demoStepData?.actions?.includes("open-drawer")}
             />
           )}
           {section === "accounts" && uiMode === "dark" && (
@@ -691,8 +721,8 @@ export default function App() {
       </div>
 
       {/* Modals */}
-      {selectedAccount && <AccountDetail account={selectedAccount} contacts={contacts} allActivities={allActivities} onClose={() => setSelectedAccount(null)} onContactClick={c => { setSelectedAccount(null); setSelectedContact(c); }} onContentClick={ct => { setSelectedAccount(null); setSelectedContent(ct); }} />}
-      {selectedContact && <ContactDetail contact={selectedContact} allActivities={allActivities} onClose={() => setSelectedContact(null)} onAccountClick={accId => { const a = accounts.find(x => x.id === accId); if (a) { setSelectedContact(null); setSelectedAccount(a); }}} onContentClick={ct => { setSelectedContact(null); setSelectedContent(ct); }} />}
+      {selectedAccount && <AccountDetail account={selectedAccount} contacts={contacts} allActivities={allActivities} onClose={() => setSelectedAccount(null)} onContactClick={c => { setSelectedAccount(null); setSelectedContact(c); }} onContentClick={ct => { setSelectedAccount(null); setSelectedContent(ct); }} demoTab={demoAccountTab} />}
+      {selectedContact && <ContactDetail contact={selectedContact} allActivities={allActivities} onClose={() => setSelectedContact(null)} onAccountClick={accId => { const a = accounts.find(x => x.id === accId); if (a) { setSelectedContact(null); setSelectedAccount(a); }}} onContentClick={ct => { setSelectedContact(null); setSelectedContent(ct); }} demoTab={demoContactTab} />}
       {selectedContent && <ContentDetail content={selectedContent} contacts={contacts} accounts={accounts} onClose={() => setSelectedContent(null)} onAccountClick={a => { setSelectedContent(null); setSelectedAccount(a); }} onContactClick={c => { setSelectedContent(null); setSelectedContact(c); }} />}
       {signalModal && <SignalConfigModal signal={signalModal} onClose={() => setSignalModal(null)} onSave={() => setSignalModal(null)} />}
       {newSignal && <SignalConfigModal isNew onClose={() => setNewSignal(false)} onSave={(config) => { setSignalConfigs([...signalConfigs, { id: `SIG-${signalConfigs.length + 1}`, ...config, status: "Active" }]); setNewSignal(false); }} />}
@@ -702,46 +732,14 @@ export default function App() {
       {revvyOpen && <RevvyAI onClose={() => setRevvyOpen(false)} accounts={accounts} contacts={contacts} />}
 
       {/* Demo Overlay */}
-      {demoActive && (
+      {demoStepData && (
         <DemoOverlay
-          onClose={() => setDemoActive(false)}
-          onNavigate={(sec) => {
-            setSection(sec);
-            setSignalDetailView(null);
-            setAudienceView(null);
-            setSelectedAccount(null);
-            setSelectedContact(null);
-          }}
-          onAction={(action, step) => {
-            if (action === "open-account") {
-              const hero = accounts.find(a => a.id === HERO.accountId) || accounts[0];
-              setSelectedAccount(hero);
-            }
-            if (action === "open-contact") {
-              const heroCon = contacts.find(c => c.accountId === HERO.accountId && c.isBuyingGroup && c.archetype === "Champion") || contacts.find(c => c.accountId === HERO.accountId && !c.isHidden) || contacts[0];
-              setSelectedAccount(null);
-              setSelectedContact(heroCon);
-            }
-            if (action === "navigate-signals") {
-              setSelectedContact(null);
-              setSection("signals");
-            }
-            if (action === "open-signal-detail") {
-              const sigCfg = signalConfigs.find(s => s.name.includes("Job Change"));
-              if (sigCfg) setSignalDetailView(sigCfg);
-            }
-            if (action === "navigate-audiences") {
-              setSignalDetailView(null);
-              setSection("audiences");
-            }
-            if (action === "open-audience") {
-              const aud = AUDIENCES_DEFAULT.find(a => a.name === HERO.audienceName);
-              if (aud) setAudienceView(aud);
-            }
-            if (action === "open-drawer") {
-              // The drawer is inside AccountsView — we just note it for narration
-            }
-          }}
+          step={demoStepData}
+          totalSteps={DEMO_STEPS.length}
+          stepIdx={demoStep}
+          onNext={() => executeDemoStep(demoStep + 1)}
+          onPrev={() => executeDemoStep(demoStep - 1)}
+          onClose={() => { setDemoStep(-1); }}
         />
       )}
     </div>

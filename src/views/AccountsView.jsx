@@ -355,7 +355,7 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
 }
 
 // ─── MAIN ACCOUNTS VIEW ──────────────────────────────────────────────────────
-export default function AccountsView({ accounts, search, onSearch, onAccountClick, onEnrich, extCols, onToggleMode }) {
+export default function AccountsView({ accounts, search, onSearch, onAccountClick, onEnrich, extCols, onToggleMode, demoDrawerOpen }) {
   const [customCols, setCustomCols] = useState([]);
   const [cellData, setCellData] = useState({});
   const [colOrder, setColOrder] = useState(null); // null = default order
@@ -364,6 +364,11 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
   const [dragCol, setDragCol] = useState(null);
   const [filterStage, setFilterStage] = useState("all");
   const [filterType, setFilterType] = useState("all");
+
+  // Demo can open the drawer
+  useEffect(() => {
+    if (demoDrawerOpen && !drawerOpen) setDrawerOpen(true);
+  }, [demoDrawerOpen]);
 
   const allDynamicCols = [...DEFAULT_INTEGRATION_COLS, ...customCols];
   const orderedCols = colOrder || [...NATIVE_COLS.map(c => c.id), ...allDynamicCols.map(c => c.id)];

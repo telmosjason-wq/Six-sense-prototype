@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { C } from '../components/ui/theme';
 import { Badge, Btn, Tab, Modal, Stat, Score, SectionLabel, FieldGrid, SignalFieldsPanel, EmptyState } from '../components/ui';
 import { Icons } from '../components/Icons';
 import { CONTENT_ITEMS } from '../data/constants';
 
-export default function AccountDetail({ account: a, contacts, allActivities, onClose, onContactClick, onContentClick }) {
-  const [tab, setTab] = useState("overview");
+export default function AccountDetail({ account: a, contacts, allActivities, onClose, onContactClick, onContentClick, demoTab }) {
+  const [tab, setTab] = useState(demoTab || "overview");
+  // Respond to demoTab changes
+  useEffect(() => { if (demoTab) setTab(demoTab); }, [demoTab]);
   const ac = contacts.filter(c => c.accountId === a.id);
   const bg = ac.filter(c => c.isBuyingGroup);
   const acActs = allActivities.filter(x => x.entityId === a.id || ac.some(c => c.id === x.entityId));
