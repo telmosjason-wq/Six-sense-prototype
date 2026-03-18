@@ -2,6 +2,10 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { L } from '../components/ui/theme';
 import { CONTENT_ITEMS, SIGNAL_CONFIGS_DEFAULT, COMPETITORS } from '../data/constants';
 import { rand, randInt } from '../data/generators';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui-shadcn/table';
+import { Badge } from '../components/ui-shadcn/badge';
+import { Button } from '../components/ui-shadcn/button';
+import { cn } from '../lib/utils';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const SOURCES = {
@@ -430,23 +434,24 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
 
   const isNative = (colId) => NATIVE_COLS.some(c => c.id === colId);
 
-  const stageColor = (v) => v === "Decision" ? "var(--color-success)" : v === "Consideration" ? "var(--color-warning)" : v === "Awareness" ? "var(--color-info)" : v === "Customer" ? "var(--color-sixsense)" : "var(--color-text-muted)";
-  const riskColor = (v) => { if (typeof v !== "string") return L.text; if (v.startsWith("High")) return "var(--color-danger)"; if (v.startsWith("Medium")) return "var(--color-warning)"; if (v.startsWith("Low")) return "var(--color-success)"; return L.textMuted; };
+  const stageVariant = (v) => v === "Decision" ? "success" : v === "Consideration" ? "warning" : v === "Awareness" ? "info" : v === "Customer" ? "sixsense" : "muted";
+  const riskVariant = (v) => { if (typeof v !== "string") return "default"; if (v.startsWith("High")) return "danger"; if (v.startsWith("Medium")) return "warning"; if (v.startsWith("Low")) return "success"; return "muted"; };
 
   const renderCellContent = (colId, value) => {
-    if (colId === "buying_stage") return <span style={{ color: stageColor(value), fontWeight: 700 }}>{value}</span>;
-    if (colId === "comp_risk") return <span style={{ color: riskColor(value), fontWeight: value !== "None" ? 600 : 400 }}>{value}</span>;
+    if (colId === "buying_stage") return <Badge variant={stageVariant(value)} size="md">{value}</Badge>;
+    if (colId === "comp_risk" && value !== "None") return <Badge variant={riskVariant(value)} size="sm">{value}</Badge>;
+    if (colId === "comp_risk") return <span className="text-[var(--color-text-muted)]">None</span>;
     if (colId === "health_score" && value !== "—") {
-      const n = parseInt(value); const c = n > 70 ? "var(--color-success)" : n > 40 ? "var(--color-warning)" : "var(--color-danger)";
-      return <span style={{ color: c, fontWeight: 700 }}>{value}</span>;
+      const n = parseInt(value); const variant = n > 70 ? "success" : n > 40 ? "warning" : "danger";
+      return <Badge variant={variant} size="sm">{value}</Badge>;
     }
     if (colId === "gong_competitor") {
-      if (typeof value === "string" && value.startsWith("Yes")) return <span style={{ color: "var(--color-danger)", fontWeight: 600 }}>{value}</span>;
-      return <span style={{ color: L.textDim }}>{value}</span>;
+      if (typeof value === "string" && value.startsWith("Yes")) return <Badge variant="danger" size="sm">{value}</Badge>;
+      return <span className="text-[var(--color-text-muted)]">{value}</span>;
     }
-    if (typeof value === "string" && value.startsWith("✓")) return <span style={{ color: "var(--color-success)", fontWeight: 600 }}>{value}</span>;
-    if (value === "— Not triggered") return <span style={{ color: L.textDim }}>{value}</span>;
-    return <span style={{ color: L.text }}>{value || "—"}</span>;
+    if (typeof value === "string" && value.startsWith("✓")) return <Badge variant="success" size="sm" dot>{value.replace("✓ ", "")}</Badge>;
+    if (value === "— Not triggered") return <span className="text-[var(--color-text-muted)]">{value}</span>;
+    return <span className="text-[var(--color-text)]">{value || "—"}</span>;
   };
 
   // Collect unique sources for footer
@@ -468,8 +473,8 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
           <span style={{ padding: "2px 10px", borderRadius: "var(--radius-xl)", background: "var(--color-purple-subtle)", color: "var(--color-purple)", fontSize: "var(--font-size-xs)", fontWeight: 700 }}>BYOD PROTOTYPE</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {onToggleMode && <button onClick={onToggleMode} style={{ padding: "8px 14px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", background: "var(--color-bg-card)", color: L.textMuted, fontSize: "var(--font-size-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>🌙 Dark View</button>}
-          <button onClick={() => setDrawerOpen(true)} style={{ padding: "8px 16px", borderRadius: "var(--radius-lg)", border: "none", background: "var(--color-sixsense)", color: "var(--color-bg-card)", fontSize: "var(--font-size-sm)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>+ Add Data Column</button>
+          {onToggleMode && <Button variant="secondary" size="sm" onClick={onToggleMode}>🌙 Dark View</Button>}
+          <Button variant="default" size="sm" onClick={() => setDrawerOpen(true)}>+ Add Data Column</Button>
         </div>
       </div>
 
@@ -492,89 +497,107 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
       </div>
 
       {/* Table */}
-      <div style={{ flex: 1, overflow: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 800 + displayCols.length * 160 }}>
-          <thead>
-            <tr>
+      <div className="flex-1 overflow-auto">
+        <Table className={cn("min-w-[800px]")} style={{ minWidth: 800 + displayCols.length * 160 }}>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
               {/* Sticky company col header */}
-              <th style={{ position: "sticky", left: 0, zIndex: 10, background: "var(--color-bg-card)", padding: "10px 16px", textAlign: "left", borderBottom: "1px solid #e5e7eb", borderTop: "3px solid #0D9488", fontWeight: 600, fontSize: "var(--font-size-xs)", color: L.textDim, textTransform: "uppercase", minWidth: 240 }}>
-                {srcIcon("sixsense", 12)} Company
-              </th>
+              <TableHead
+                className="sticky left-0 z-10 min-w-[240px]"
+                style={{ background: "var(--color-bg-card)", borderTop: "3px solid var(--color-sixsense)" }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  {srcIcon("sixsense", 12)} Company
+                </span>
+              </TableHead>
               {displayCols.map(colId => {
                 const col = getCol(colId);
                 if (!col) return null;
                 const src = SOURCES[col.source] || SOURCES.sixsense;
                 const native = isNative(colId);
                 return (
-                  <th key={colId}
+                  <TableHead
+                    key={colId}
                     draggable
                     onDragStart={e => handleDragStart(e, colId)}
                     onDragOver={handleDragOver}
                     onDrop={e => handleDrop(e, colId)}
-                    style={{
-                      padding: "8px 14px", textAlign: "left",
-                      borderBottom: "1px solid #e5e7eb", borderTop: `3px solid ${src.color}`,
-                      background: dragCol === colId ? "var(--color-success-subtle)" : "var(--color-bg-card)",
-                      fontWeight: 600, fontSize: "var(--font-size-xs)", color: L.textDim, minWidth: 150,
-                      cursor: "grab", userSelect: "none", position: "relative"
-                    }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    data-col={colId}
+                    className={cn(
+                      "min-w-[150px] cursor-grab select-none relative",
+                      dragCol === colId && "bg-[var(--color-success-subtle)]"
+                    )}
+                    style={{ borderTop: `3px solid ${src.color}`, background: dragCol === colId ? undefined : "var(--color-bg-card)" }}
+                  >
+                    <div className="flex items-center gap-1.5">
                       {srcIcon(col.source, 12)}
                       <div>
-                        <div style={{ color: L.text, textTransform: "none", fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{col.label}</div>
-                        <div style={{ color: L.textDim, fontSize: 10, textTransform: "uppercase", fontWeight: 500 }}>{src.name}</div>
+                        <div className="text-[length:var(--font-size-sm)] font-semibold text-[var(--color-text)] normal-case">{col.label}</div>
+                        <div className="text-[10px] font-medium text-[var(--color-text-muted)] uppercase">{src.name}</div>
                       </div>
                     </div>
                     {!native && (
-                      <button onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }} style={{ position: "absolute", top: 6, right: 6, background: "none", border: "none", color: L.textDim, fontSize: "var(--font-size-base)", cursor: "pointer", lineHeight: 1 }} title="Remove column">×</button>
+                      <button onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }} className="absolute top-1.5 right-1.5 bg-transparent border-none text-[var(--color-text-muted)] text-sm cursor-pointer leading-none hover:text-[var(--color-danger)]" title="Remove column">×</button>
                     )}
-                  </th>
+                  </TableHead>
                 );
               })}
               {/* Add column header */}
-              <th onClick={() => setDrawerOpen(true)} style={{
-                padding: "10px 16px", textAlign: "center", borderBottom: "1px solid #e5e7eb", borderTop: "3px solid #059669",
-                background: "var(--color-success-subtle)", cursor: "pointer", minWidth: 120, fontWeight: 700, fontSize: "var(--font-size-sm)", color: "var(--color-success)"
-              }}>
-                ＋ Add Column
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAccounts.map(a => (
-              <tr key={a.id} style={{ borderBottom: "1px solid #f3f4f6" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-hover)"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+              <TableHead
+                onClick={() => setDrawerOpen(true)}
+                className="text-center min-w-[120px] font-bold cursor-pointer text-[var(--color-success)] text-[length:var(--font-size-sm)]"
+                style={{ borderTop: "3px solid var(--color-success)", background: "var(--color-success-subtle)" }}
               >
+                ＋ Add Column
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAccounts.map(a => (
+              <TableRow key={a.id} className="cursor-pointer">
                 {/* Sticky company cell */}
-                <td onClick={() => onAccountClick(a)} style={{ position: "sticky", left: 0, zIndex: 5, background: "inherit", padding: "12px 16px", cursor: "pointer" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "var(--radius-md)", background: hashColor(a.name) + "18", border: `1.5px solid ${hashColor(a.name)}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "var(--font-size-sm)", fontWeight: 700, color: hashColor(a.name), flexShrink: 0 }}>{a.name.charAt(0)}</div>
+                <TableCell
+                  onClick={() => onAccountClick(a)}
+                  className="sticky left-0 z-[5] cursor-pointer"
+                  style={{ background: "inherit" }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="flex items-center justify-center shrink-0 font-bold text-[length:var(--font-size-sm)]"
+                      style={{
+                        width: 28, height: 28, borderRadius: "var(--radius-md)",
+                        background: hashColor(a.name) + "18",
+                        border: `1.5px solid ${hashColor(a.name)}30`,
+                        color: hashColor(a.name),
+                      }}
+                    >{a.name.charAt(0)}</div>
                     <div>
-                      <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{a.name}</div>
-                      <div style={{ fontSize: "var(--font-size-xs)", color: L.textDim }}>{a.stage === "Customer" ? "Customer" : "Prospect"} · {a.revenue}</div>
+                      <div className="font-semibold text-[length:var(--font-size-base)] text-[var(--color-text)]">{a.name}</div>
+                      <div className="text-[length:var(--font-size-xs)] text-[var(--color-text-muted)]">{a.stage === "Customer" ? "Customer" : "Prospect"} · {a.revenue}</div>
                     </div>
                   </div>
-                </td>
+                </TableCell>
                 {displayCols.map(colId => {
                   const value = getCellValue(colId, a);
                   return (
-                    <td key={colId}
+                    <TableCell
+                      key={colId}
                       onClick={e => {
                         const rect = e.currentTarget.getBoundingClientRect();
                         const col = getCol(colId);
                         setEditingCell({ colId, accountId: a.id, accountName: a.name, colLabel: col?.label || colId, value: String(value), rect });
                       }}
-                      style={{ padding: "12px 14px", cursor: "pointer", fontSize: "var(--font-size-base)" }}>
+                      className="cursor-pointer"
+                    >
                       {renderCellContent(colId, value)}
-                    </td>
+                    </TableCell>
                   );
                 })}
-                <td style={{ padding: "12px 16px" }} />
-              </tr>
+                <TableCell />
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Footer legend */}
