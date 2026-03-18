@@ -25,9 +25,17 @@ const SOURCES = {
   revvyai: { name: "RevvyAI", color: "var(--color-purple)", icon: "✦" },
 };
 
-function srcIcon(sourceId, size = 14) {
+function SrcIcon({ sourceId, size = 14 }) {
   const s = SOURCES[sourceId] || SOURCES.sixsense;
-  return <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: size + 4, height: size + 4, borderRadius: 3, background: s.color + "18", color: s.color, fontSize: size * 0.65, fontWeight: 800, lineHeight: 1, flexShrink: 0 }}>{s.icon}</span>;
+  const px = size + 4;
+  return (
+    <span
+      className="inline-flex items-center justify-center shrink-0 rounded font-extrabold leading-none"
+      style={{ width: px, height: px, background: s.color + "18", color: s.color, fontSize: size * 0.65 }}
+    >
+      {s.icon}
+    </span>
+  );
 }
 
 // Native columns (always present, non-removable)
@@ -203,7 +211,7 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
         {/* Header */}
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {srcIcon("sixsense", 16)}
+            {<SrcIcon sourceId="sixsense" size={16} />}
             <span style={{ fontSize: "var(--font-size-lg)", fontWeight: 700, color: L.text }}>Add Data Column</span>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "var(--font-size-xl)", color: L.textDim, cursor: "pointer" }}>✕</button>
@@ -232,7 +240,7 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
                     background: isSelected ? "var(--color-success-subtle)" : alreadyAdded ? "var(--color-bg-hover)" : "var(--color-bg-card)",
                     cursor: alreadyAdded ? "default" : "pointer", opacity: alreadyAdded ? 0.5 : 1
                   }}>
-                    {srcIcon(item.source, 18)}
+                    <SrcIcon sourceId={item.source} size={18} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{item.label}</div>
                       <div style={{ fontSize: "var(--font-size-sm)", color: L.textMuted }}>{item.desc}</div>
@@ -259,7 +267,7 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
                     background: isSelected ? "var(--color-success-subtle)" : "var(--color-bg-card)",
                     cursor: alreadyAdded ? "default" : "pointer", opacity: alreadyAdded ? 0.5 : 1
                   }}>
-                    {srcIcon("signals", 18)}
+                    {<SrcIcon sourceId="signals" size={18} />}
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{item.label}</div>
                       <div style={{ fontSize: "var(--font-size-sm)", color: L.textMuted }}>{item.desc}</div>
@@ -463,51 +471,57 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
   const displayCols = (colOrder || [...NATIVE_COLS.map(c => c.id), ...allDynamicCols.map(c => c.id)]).filter(id => getCol(id));
 
   return (
-    <div style={{ background: "var(--color-bg)", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div className="bg-[var(--color-bg)] h-full flex flex-col">
       {/* Header */}
-      <div style={{ padding: "16px 24px", background: "var(--color-bg-card)", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {srcIcon("sixsense", 18)}
-          <span style={{ fontSize: "var(--font-size-md)", color: L.textMuted }}>Sales Intelligence ›</span>
-          <span style={{ fontSize: "var(--font-size-md)", fontWeight: 700, color: L.text }}>Account Intelligence View</span>
-          <span style={{ padding: "2px 10px", borderRadius: "var(--radius-xl)", background: "var(--color-purple-subtle)", color: "var(--color-purple)", fontSize: "var(--font-size-xs)", fontWeight: 700 }}>BYOD PROTOTYPE</span>
+      <div className="px-6 py-4 bg-[var(--color-bg-card)] border-b border-[var(--color-border)] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <SrcIcon sourceId="sixsense" size={18} />
+          <span className="text-[length:var(--font-size-md)] text-[var(--color-text-secondary)]">Sales Intelligence ›</span>
+          <span className="text-[length:var(--font-size-md)] font-bold text-[var(--color-text)]">Account Intelligence View</span>
+          <Badge variant="purple" size="sm">BYOD PROTOTYPE</Badge>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="flex gap-2 items-center">
           {onToggleMode && <Button variant="secondary" size="sm" onClick={onToggleMode}>🌙 Dark View</Button>}
-          <Button variant="default" size="sm" onClick={() => setDrawerOpen(true)}>+ Add Data Column</Button>
+          <Button variant="default" size="sm" onClick={() => setDrawerOpen(true)} data-demo="add-col-btn">+ Add Data Column</Button>
         </div>
       </div>
 
       {/* Filter bar */}
-      <div style={{ padding: "10px 24px", background: "var(--color-bg-card)", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ position: "relative", flex: 1, maxWidth: 300 }}>
-          <span style={{ position: "absolute", left: 10, top: 9, color: L.textDim }}>🔍</span>
-          <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search accounts…" style={{ width: "100%", padding: "8px 12px 8px 32px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", outline: "none" }} />
+      <div className="px-6 py-2.5 bg-[var(--color-bg-card)] border-b border-[var(--color-border)] flex items-center gap-3">
+        <div className="relative flex-1 max-w-[300px]">
+          <span className="absolute left-2.5 top-2 text-[var(--color-text-muted)]">🔍</span>
+          <input
+            value={search} onChange={e => onSearch(e.target.value)} placeholder="Search accounts…"
+            className="w-full py-2 px-3 pl-8 rounded-[var(--radius-lg)] border border-[var(--color-border)] text-[length:var(--font-size-base)] font-[family-name:var(--font-sans)] outline-none bg-[var(--color-bg)] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+          />
         </div>
-        <select value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-sm)", fontFamily: "inherit", outline: "none", color: L.textMuted }}>
+        <select value={filterStage} onChange={e => setFilterStage(e.target.value)}
+          className="py-2 px-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] text-[length:var(--font-size-sm)] font-[family-name:var(--font-sans)] outline-none text-[var(--color-text-secondary)] bg-[var(--color-bg-card)]"
+        >
           <option value="all">All Buying Stages</option>
           {["Decision","Consideration","Awareness","Customer"].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-sm)", fontFamily: "inherit", outline: "none", color: L.textMuted }}>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          className="py-2 px-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] text-[length:var(--font-size-sm)] font-[family-name:var(--font-sans)] outline-none text-[var(--color-text-secondary)] bg-[var(--color-bg-card)]"
+        >
           <option value="all">All Account Types</option>
           <option value="Customer">Customer</option>
           <option value="Prospect">Prospect</option>
         </select>
-        <span style={{ marginLeft: "auto", fontSize: "var(--font-size-sm)", color: L.textMuted }}>Showing {filteredAccounts.length} accounts</span>
+        <span className="ml-auto text-[length:var(--font-size-sm)] text-[var(--color-text-muted)]">Showing {filteredAccounts.length} accounts</span>
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
-        <Table className={cn("min-w-[800px]")} style={{ minWidth: 800 + displayCols.length * 160 }}>
+      <div className="flex-1 overflow-auto light-scroll">
+        <Table style={{ minWidth: 800 + displayCols.length * 160 }}>
           <TableHeader>
-            <TableRow className="hover:bg-transparent">
+            <TableRow className="hover:bg-transparent border-none">
               {/* Sticky company col header */}
               <TableHead
-                className="sticky left-0 z-10 min-w-[240px]"
-                style={{ background: "var(--color-bg-card)", borderTop: "3px solid var(--color-sixsense)" }}
+                className="sticky left-0 z-10 min-w-[240px] bg-[var(--color-bg-card)] border-t-[3px] border-t-[var(--color-sixsense)]"
               >
                 <span className="inline-flex items-center gap-1.5">
-                  {srcIcon("sixsense", 12)} Company
+                  <SrcIcon sourceId="sixsense" size={12} /> Company
                 </span>
               </TableHead>
               {displayCols.map(colId => {
@@ -524,20 +538,24 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
                     onDrop={e => handleDrop(e, colId)}
                     data-col={colId}
                     className={cn(
-                      "min-w-[150px] cursor-grab select-none relative",
-                      dragCol === colId && "bg-[var(--color-success-subtle)]"
+                      "min-w-[150px] cursor-grab select-none relative border-t-[3px]",
+                      dragCol === colId ? "bg-[var(--color-success-subtle)]" : "bg-[var(--color-bg-card)]"
                     )}
-                    style={{ borderTop: `3px solid ${src.color}`, background: dragCol === colId ? undefined : "var(--color-bg-card)" }}
+                    style={{ borderTopColor: src.color }}
                   >
                     <div className="flex items-center gap-1.5">
-                      {srcIcon(col.source, 12)}
+                      <SrcIcon sourceId={col.source} size={12} />
                       <div>
                         <div className="text-[length:var(--font-size-sm)] font-semibold text-[var(--color-text)] normal-case">{col.label}</div>
                         <div className="text-[10px] font-medium text-[var(--color-text-muted)] uppercase">{src.name}</div>
                       </div>
                     </div>
                     {!native && (
-                      <button onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }} className="absolute top-1.5 right-1.5 bg-transparent border-none text-[var(--color-text-muted)] text-sm cursor-pointer leading-none hover:text-[var(--color-danger)]" title="Remove column">×</button>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }}
+                        className="absolute top-1 right-1.5 bg-transparent border-none text-[var(--color-text-muted)] text-sm cursor-pointer leading-none hover:text-[var(--color-danger)] transition-colors"
+                        title="Remove column"
+                      >×</button>
                     )}
                   </TableHead>
                 );
@@ -545,8 +563,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
               {/* Add column header */}
               <TableHead
                 onClick={() => setDrawerOpen(true)}
-                className="text-center min-w-[120px] font-bold cursor-pointer text-[var(--color-success)] text-[length:var(--font-size-sm)]"
-                style={{ borderTop: "3px solid var(--color-success)", background: "var(--color-success-subtle)" }}
+                className="text-center min-w-[120px] font-bold cursor-pointer text-[var(--color-success)] text-[length:var(--font-size-sm)] bg-[var(--color-success-subtle)] border-t-[3px] border-t-[var(--color-success)]"
               >
                 ＋ Add Column
               </TableHead>
@@ -558,8 +575,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
                 {/* Sticky company cell */}
                 <TableCell
                   onClick={() => onAccountClick(a)}
-                  className="sticky left-0 z-[5] cursor-pointer"
-                  style={{ background: "inherit" }}
+                  className="sticky left-0 z-[5] cursor-pointer bg-[var(--color-bg-card)] group-hover:bg-[var(--color-bg-hover)]"
                 >
                   <div className="flex items-center gap-2.5">
                     <div
@@ -601,16 +617,16 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
       </div>
 
       {/* Footer legend */}
-      <div style={{ padding: "10px 24px", background: "var(--color-bg-card)", borderTop: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 16, fontSize: "var(--font-size-xs)", color: L.textMuted }}>
+      <div className="px-6 py-2.5 bg-[var(--color-bg-card)] border-t border-[var(--color-border)] flex items-center gap-4 text-[length:var(--font-size-xs)] text-[var(--color-text-muted)]">
         {activeSources.map(s => (
-          <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
+          <div key={s.name} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-sm" style={{ background: s.color }} />
             {s.name}
           </div>
         ))}
         {customCols.filter(c => c.source === "signals").length > 0 && <span>📡 Signals ({customCols.filter(c => c.source === "signals").length})</span>}
         {customCols.filter(c => c.source === "revvyai").length > 0 && <span>✦ RevvyAI ({customCols.filter(c => c.source === "revvyai").length})</span>}
-        <span style={{ marginLeft: "auto", color: L.textDim }}>Click any cell to edit · Drag column headers to reorder · + Add Data Column to bring your own data</span>
+        <span className="ml-auto text-[var(--color-text-muted)]">Click any cell to edit · Drag column headers to reorder · + Add Data Column to bring your own data</span>
       </div>
 
       {/* Drawer */}
