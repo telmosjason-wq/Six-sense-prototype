@@ -1,3 +1,109 @@
+@import "tailwindcss";
+
+/* ─── DESIGN TOKENS ─────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Typography */
+  --font-sans: 'DM Sans', 'Satoshi', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Font sizes — named scale */
+  --font-size-xs: 0.6875rem;    /* 11px */
+  --font-size-sm: 0.75rem;      /* 12px */
+  --font-size-base: 0.8125rem;  /* 13px */
+  --font-size-md: 0.875rem;     /* 14px */
+  --font-size-lg: 0.9375rem;    /* 15px */
+  --font-size-xl: 1.125rem;     /* 18px */
+  --font-size-2xl: 1.375rem;    /* 22px */
+  --font-size-3xl: 1.75rem;     /* 28px */
+
+  /* Spacing — 4px base grid */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --shadow-xl: 0 12px 48px rgba(0,0,0,0.18);
+  --shadow-dark-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-dark-lg: 0 8px 30px rgba(0,0,0,0.4);
+
+  /* ── Light Theme Colors (default) ──────────────────────── */
+  --color-bg: #f8f9fb;
+  --color-bg-card: #ffffff;
+  --color-bg-hover: #f1f3f7;
+  --color-bg-panel: #f3f4f8;
+  --color-bg-muted: #f9fafb;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-text: #1a1d23;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  /* Semantic */
+  --color-accent: #0891b2;
+  --color-accent-hover: #0e7490;
+  --color-accent-subtle: #ecfeff;
+  --color-success: #059669;
+  --color-success-subtle: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-subtle: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-subtle: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-subtle: #eff6ff;
+  --color-purple: #7c3aed;
+  --color-purple-subtle: #f5f3ff;
+  --color-pink: #db2777;
+  --color-pink-subtle: #fdf2f8;
+
+  /* Brand / Source colors */
+  --color-sixsense: #0D9488;
+  --color-salesforce: #1D4ED8;
+  --color-gong: #059669;
+  --color-gainsight: #7C3AED;
+  --color-hubspot: #D97706;
+
+  /* ── Dark Theme Colors (sidebar + dark mode) ───────────── */
+  --color-dark-bg: #0a0e17;
+  --color-dark-bg-card: #111827;
+  --color-dark-bg-hover: #1a2234;
+  --color-dark-bg-panel: #0d1321;
+  --color-dark-border: #1e293b;
+  --color-dark-border-light: #2a3a52;
+  --color-dark-text: #e2e8f0;
+  --color-dark-text-secondary: #8892a4;
+  --color-dark-text-muted: #4a5568;
+  --color-dark-accent: #22d3ee;
+  --color-dark-success: #34d399;
+  --color-dark-warning: #f59e0b;
+  --color-dark-danger: #f87171;
+  --color-dark-purple: #a78bfa;
+  --color-dark-info: #60a5fa;
+  --color-dark-pink: #f472b6;
+}
+
+/* ─── BASE STYLES ───────────────────────────────────────────────────────────── */
+
 * {
   margin: 0;
   padding: 0;
@@ -5,38 +111,24 @@
 }
 
 body {
-  background: #0a0e17;
-  color: #e2e8f0;
-  font-family: 'DM Sans', 'Satoshi', system-ui, sans-serif;
+  background: var(--color-dark-bg);
+  color: var(--color-dark-text);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  font-size: var(--font-size-base);
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* ─── SCROLLBARS ────────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-dark-border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4a62; }
 
-::-webkit-scrollbar-thumb {
-  background: #2a3a52;
-  border-radius: 3px;
-}
+/* Light context scrollbars */
+.light-scroll::-webkit-scrollbar-thumb { background: var(--color-border-strong); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3a4a62;
-}
+/* ─── UTILITY CLASSES ───────────────────────────────────────────────────────── */
 
-table {
-  border-spacing: 0;
-}
-
-button {
-  font-family: inherit;
-}
-
-input, select, textarea {
-  font-family: inherit;
-}
+table { border-spacing: 0; }
+button, input, select, textarea { font-family: inherit; }

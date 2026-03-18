@@ -11,6 +11,7 @@ import ContentDetail from './modals/ContentDetail';
 import { SignalConfigModal, AudienceBuilder, EnrichModal } from './modals/SharedModals';
 import WorkflowBuilder from './modals/WorkflowBuilder';
 import IntelligenceView from './views/IntelligenceView';
+import DesignShowcase from './views/DesignShowcase';
 import RevvyAI from './modals/RevvyAI';
 import DemoOverlay from './components/DemoOverlay';
 import { HERO, DEMO_STEPS } from './data/demoScript';
@@ -165,6 +166,15 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <div style={{ padding: "4px 8px" }}>
+          <button onClick={() => { setSection("design"); setSignalDetailView(null); setAudienceView(null); }} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 6, border: "none", width: "100%", textAlign: "left",
+            background: section === "design" ? C.accent + "15" : "transparent", color: section === "design" ? C.accent : C.textDim,
+            fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit"
+          }}>
+            🎨 Design System
+          </button>
+        </div>
         <div style={{ padding: "8px 8px 12px" }}>
           <button onClick={() => executeDemoStep(0)} style={{
             width: "100%", padding: "10px 12px", borderRadius: 8, border: "none",
@@ -179,9 +189,9 @@ export default function App() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: (section === "accounts" && uiMode === "light") ? L.bg : C.bg }}>
-        {/* Header - hidden for accounts light mode (has its own) */}
-        {!(section === "accounts" && uiMode === "light") && (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: ((section === "accounts" && uiMode === "light") || section === "design") ? L.bg : C.bg }}>
+        {/* Header - hidden for accounts light mode and design showcase */}
+        {!((section === "accounts" && uiMode === "light") || section === "design") && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 24px", borderBottom: `1px solid ${C.border}`, background: C.bgPanel }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.text }}>{nav.find(n => n.key === section)?.label}</h2>
@@ -197,7 +207,7 @@ export default function App() {
         )}
 
         {/* Content Area */}
-        <div style={{ flex: 1, overflow: "auto", padding: (section === "accounts" && uiMode === "light") ? 0 : 24 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: ((section === "accounts" && uiMode === "light") || section === "design") ? 0 : 24 }}>
 
           {/* ── ACCOUNTS ── */}
           {section === "accounts" && uiMode === "light" && (
@@ -716,6 +726,8 @@ export default function App() {
               onContactClick={c => setSelectedContact(c)}
             />
           )}
+
+          {section === "design" && <DesignShowcase />}
 
         </div>
       </div>
