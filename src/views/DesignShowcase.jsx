@@ -213,6 +213,42 @@ export default function DesignShowcase() {
 
   const resetAll = () => setT(DEFAULT_TOKENS);
 
+  // ── SYNC TOKENS TO CSS CUSTOM PROPERTIES (live across entire app) ──
+  useEffect(() => {
+    const root = document.documentElement;
+    // Colors
+    const colorMap = {
+      "color-accent": t.colors.accent, "color-success": t.colors.success,
+      "color-warning": t.colors.warning, "color-danger": t.colors.danger,
+      "color-info": t.colors.info, "color-purple": t.colors.purple, "color-pink": t.colors.pink,
+      "color-bg": t.colors.bg, "color-bg-card": t.colors.bgCard,
+      "color-bg-hover": t.colors.bgHover, "color-border": t.colors.border,
+      "color-text": t.colors.text, "color-text-secondary": t.colors.textSecondary,
+      "color-text-muted": t.colors.textMuted,
+      "color-dark-bg": t.colors.darkBg, "color-dark-bg-card": t.colors.darkBgCard,
+      "color-dark-border": t.colors.darkBorder, "color-dark-text": t.colors.darkText,
+      "color-dark-text-secondary": t.colors.darkTextSecondary || "#8892a4",
+      "color-dark-accent": t.colors.darkAccent,
+      "color-sixsense": t.colors.sixsense, "color-salesforce": t.colors.salesforce,
+      "color-gong": t.colors.gong, "color-gainsaint": t.colors.gainsight,
+      // Subtle variants (computed)
+      "color-accent-subtle": t.colors.accent + "18",
+      "color-success-subtle": t.colors.success + "18",
+      "color-warning-subtle": t.colors.warning + "18",
+      "color-danger-subtle": t.colors.danger + "18",
+      "color-info-subtle": t.colors.info + "18",
+      "color-purple-subtle": t.colors.purple + "18",
+    };
+    Object.entries(colorMap).forEach(([k, v]) => root.style.setProperty(`--${k}`, v));
+    // Typography
+    const sizeMap = { xs: t.typography.xs, sm: t.typography.sm, base: t.typography.base, md: t.typography.md, lg: t.typography.lg, xl: t.typography.xl, "2xl": t.typography["2xl"], "3xl": t.typography["3xl"] };
+    Object.entries(sizeMap).forEach(([k, v]) => root.style.setProperty(`--font-size-${k}`, `${v / 16}rem`));
+    // Spacing
+    t.spacing.scale.forEach(n => root.style.setProperty(`--spacing-${n}`, `${n * t.spacing.unit}px`));
+    // Radii
+    Object.entries(t.radii).forEach(([k, v]) => root.style.setProperty(`--radius-${k}`, `${v}px`));
+  }, [t]);
+
   const exportCode = generateCSS(t);
   const handleCopy = () => { navigator.clipboard.writeText(exportCode); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
@@ -229,7 +265,13 @@ export default function DesignShowcase() {
       <div style={{ padding: "20px 32px", background: "#fff", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: "#1a1d23" }}>Design System Editor</h1>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9ca3af" }}>Edit tokens and see components update live. Export when done.</p>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9ca3af" }}>
+            Changes apply live across the entire app. Navigate to Accounts to see them in context.
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 8, color: "#059669", fontWeight: 600 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#059669", animation: "pulse 2s infinite" }} />
+              Live
+            </span>
+          </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={resetAll} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Reset All</button>

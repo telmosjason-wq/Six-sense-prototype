@@ -5,20 +5,20 @@ import { rand, randInt } from '../data/generators';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const SOURCES = {
-  sixsense: { name: "6sense", color: "#0D9488", icon: "6" },
-  salesforce: { name: "Salesforce", color: "#1D4ED8", icon: "SF" },
-  gong: { name: "Gong", color: "#059669", icon: "G" },
-  gainsight: { name: "Gainsight", color: "#7C3AED", icon: "GS" },
-  hubspot: { name: "HubSpot", color: "#D97706", icon: "HS" },
-  marketo: { name: "Marketo", color: "#7C3AED", icon: "MK" },
-  linkedin: { name: "LinkedIn", color: "#0077B5", icon: "in" },
-  clearbit: { name: "Clearbit", color: "#1DA1F2", icon: "CB" },
-  bombora: { name: "Bombora", color: "#FF6B00", icon: "B" },
-  g2: { name: "G2", color: "#FF492C", icon: "G2" },
-  usergems: { name: "UserGems", color: "#7C3AED", icon: "UG" },
-  commonroom: { name: "CommonRoom", color: "#EC4899", icon: "CR" },
-  signals: { name: "Signals", color: "#2563EB", icon: "📡" },
-  revvyai: { name: "RevvyAI", color: "#7C3AED", icon: "✦" },
+  sixsense: { name: "6sense", color: "var(--color-sixsense)", icon: "6" },
+  salesforce: { name: "Salesforce", color: "var(--color-salesforce)", icon: "SF" },
+  gong: { name: "Gong", color: "var(--color-success)", icon: "G" },
+  gainsight: { name: "Gainsight", color: "var(--color-purple)", icon: "GS" },
+  hubspot: { name: "HubSpot", color: "var(--color-warning)", icon: "HS" },
+  marketo: { name: "Marketo", color: "var(--color-purple)", icon: "MK" },
+  linkedin: { name: "LinkedIn", color: "var(--color-info)", icon: "in" },
+  clearbit: { name: "Clearbit", color: "var(--color-info)", icon: "CB" },
+  bombora: { name: "Bombora", color: "var(--color-warning)", icon: "B" },
+  g2: { name: "G2", color: "var(--color-danger)", icon: "G2" },
+  usergems: { name: "UserGems", color: "var(--color-purple)", icon: "UG" },
+  commonroom: { name: "CommonRoom", color: "var(--color-pink)", icon: "CR" },
+  signals: { name: "Signals", color: "var(--color-info)", icon: "📡" },
+  revvyai: { name: "RevvyAI", color: "var(--color-purple)", icon: "✦" },
 };
 
 function srcIcon(sourceId, size = 14) {
@@ -81,7 +81,7 @@ function generateSampleData(srcId, accounts) {
 
 function hashColor(str) {
   let h = 0; for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
-  const c = ["#0891b2","#7c3aed","#059669","#d97706","#dc2626","#2563eb","#db2777","#0d9488","#4f46e5","#ca8a04"];
+  const c = ["var(--color-accent)","var(--color-purple)","var(--color-success)","var(--color-warning)","var(--color-danger)","var(--color-info)","var(--color-pink)","var(--color-sixsense)","var(--color-info)","var(--color-warning)"];
   return c[Math.abs(h) % c.length];
 }
 
@@ -95,12 +95,12 @@ function CellEditor({ colLabel, accountName, value, onSave, onCancel, anchorRect
   return (
     <>
       <div onClick={onCancel} style={{ position: "fixed", inset: 0, zIndex: 999 }} />
-      <div style={{ position: "fixed", top, left, zIndex: 1000, width: 300, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, boxShadow: "0 8px 30px rgba(0,0,0,0.15)", padding: 16 }}>
-        <div style={{ fontSize: 11, color: L.textDim, marginBottom: 8, textTransform: "uppercase", fontWeight: 600 }}>{colLabel} · {accountName}</div>
-        <textarea ref={ref} value={val} onChange={e => setVal(e.target.value)} rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+      <div style={{ position: "fixed", top, left, zIndex: 1000, width: 300, background: "var(--color-bg-card)", border: "1px solid #e5e7eb", borderRadius: "var(--radius-xl)", boxShadow: "0 8px 30px rgba(0,0,0,0.15)", padding: 16 }}>
+        <div style={{ fontSize: "var(--font-size-xs)", color: L.textDim, marginBottom: 8, textTransform: "uppercase", fontWeight: 600 }}>{colLabel} · {accountName}</div>
+        <textarea ref={ref} value={val} onChange={e => setVal(e.target.value)} rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: "var(--radius-md)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
         <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-          <button onClick={onCancel} style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", color: L.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={() => onSave(val)} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: "#0D9488", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
+          <button onClick={onCancel} style={{ padding: "6px 14px", borderRadius: "var(--radius-md)", border: "1px solid #e5e7eb", background: "var(--color-bg-card)", color: L.textMuted, fontSize: "var(--font-size-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={() => onSave(val)} style={{ padding: "6px 14px", borderRadius: "var(--radius-md)", border: "none", background: "var(--color-sixsense)", color: "var(--color-bg-card)", fontSize: "var(--font-size-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Save</button>
         </div>
       </div>
     </>
@@ -195,21 +195,21 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 998, background: "rgba(0,0,0,0.3)" }} />
-      <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 540, zIndex: 999, background: "#fff", borderLeft: "1px solid #e5e7eb", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: 540, zIndex: 999, background: "var(--color-bg-card)", borderLeft: "1px solid #e5e7eb", boxShadow: "-8px 0 40px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column" }}>
         {/* Header */}
         <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {srcIcon("sixsense", 16)}
-            <span style={{ fontSize: 15, fontWeight: 700, color: L.text }}>Add Data Column</span>
+            <span style={{ fontSize: "var(--font-size-lg)", fontWeight: 700, color: L.text }}>Add Data Column</span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 18, color: L.textDim, cursor: "pointer" }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "var(--font-size-xl)", color: L.textDim, cursor: "pointer" }}>✕</button>
         </div>
         {/* Tabs */}
         <div style={{ display: "flex", borderBottom: "1px solid #e5e7eb" }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setSelected(null); }} style={{
               flex: 1, padding: "10px 8px", border: "none", borderBottom: tab === t.id ? "2px solid #0D9488" : "2px solid transparent",
-              background: "transparent", color: tab === t.id ? "#0D9488" : L.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit"
+              background: "transparent", color: tab === t.id ? "var(--color-sixsense)" : L.textMuted, fontSize: "var(--font-size-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit"
             }}>{t.label}</button>
           ))}
         </div>
@@ -223,18 +223,18 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
                 const alreadyAdded = existingCols.some(c => c.id === item.id);
                 return (
                   <div key={item.id} onClick={() => !alreadyAdded && setSelected(isSelected ? null : item.id)} style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8,
-                    border: `2px solid ${isSelected ? "#059669" : alreadyAdded ? "#e5e7eb" : "#e5e7eb"}`,
-                    background: isSelected ? "#F0FDF4" : alreadyAdded ? "#f9fafb" : "#fff",
+                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: "var(--radius-lg)",
+                    border: `2px solid ${isSelected ? "var(--color-success)" : alreadyAdded ? "var(--color-border)" : "var(--color-border)"}`,
+                    background: isSelected ? "var(--color-success-subtle)" : alreadyAdded ? "var(--color-bg-hover)" : "var(--color-bg-card)",
                     cursor: alreadyAdded ? "default" : "pointer", opacity: alreadyAdded ? 0.5 : 1
                   }}>
                     {srcIcon(item.source, 18)}
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: L.text }}>{item.label}</div>
-                      <div style={{ fontSize: 12, color: L.textMuted }}>{item.desc}</div>
+                      <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{item.label}</div>
+                      <div style={{ fontSize: "var(--font-size-sm)", color: L.textMuted }}>{item.desc}</div>
                     </div>
-                    {alreadyAdded && <span style={{ fontSize: 11, color: L.textDim }}>Added</span>}
-                    {isSelected && <span style={{ color: "#059669", fontWeight: 700, fontSize: 16 }}>✓</span>}
+                    {alreadyAdded && <span style={{ fontSize: "var(--font-size-xs)", color: L.textDim }}>Added</span>}
+                    {isSelected && <span style={{ color: "var(--color-success)", fontWeight: 700, fontSize: 16 }}>✓</span>}
                   </div>
                 );
               })}
@@ -244,25 +244,25 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
           {/* Signals */}
           {tab === "signals" && (
             <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ fontSize: 12, color: L.textMuted, marginBottom: 4 }}>Active signals from your Signals Builder. Add as a column to see trigger status per account.</div>
+              <div style={{ fontSize: "var(--font-size-sm)", color: L.textMuted, marginBottom: 4 }}>Active signals from your Signals Builder. Add as a column to see trigger status per account.</div>
               {signalItems.map(item => {
                 const isSelected = selected === item.id;
                 const alreadyAdded = existingCols.some(c => c.id === item.id);
                 return (
                   <div key={item.id} onClick={() => !alreadyAdded && setSelected(isSelected ? null : item.id)} style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 8,
-                    border: `2px solid ${isSelected ? "#059669" : "#e5e7eb"}`,
-                    background: isSelected ? "#F0FDF4" : "#fff",
+                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: "var(--radius-lg)",
+                    border: `2px solid ${isSelected ? "var(--color-success)" : "var(--color-border)"}`,
+                    background: isSelected ? "var(--color-success-subtle)" : "var(--color-bg-card)",
                     cursor: alreadyAdded ? "default" : "pointer", opacity: alreadyAdded ? 0.5 : 1
                   }}>
                     {srcIcon("signals", 18)}
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: L.text }}>{item.label}</div>
-                      <div style={{ fontSize: 12, color: L.textMuted }}>{item.desc}</div>
+                      <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{item.label}</div>
+                      <div style={{ fontSize: "var(--font-size-sm)", color: L.textMuted }}>{item.desc}</div>
                     </div>
-                    <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: "#ECFDF5", color: "#059669", fontWeight: 600 }}>Active</span>
-                    {alreadyAdded && <span style={{ fontSize: 11, color: L.textDim }}>Added</span>}
-                    {isSelected && <span style={{ color: "#059669", fontWeight: 700, fontSize: 16 }}>✓</span>}
+                    <span style={{ fontSize: "var(--font-size-xs)", padding: "2px 8px", borderRadius: "var(--radius-xl)", background: "var(--color-success-subtle)", color: "var(--color-success)", fontWeight: 600 }}>Active</span>
+                    {alreadyAdded && <span style={{ fontSize: "var(--font-size-xs)", color: L.textDim }}>Added</span>}
+                    {isSelected && <span style={{ color: "var(--color-success)", fontWeight: 700, fontSize: 16 }}>✓</span>}
                   </div>
                 );
               })}
@@ -273,16 +273,16 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
           {tab === "revvyai" && (
             <div style={{ display: "grid", gap: 16 }}>
               <div>
-                <label style={{ fontSize: 11, color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Column Name *</label>
-                <input value={aiName} onChange={e => setAiName(e.target.value)} placeholder="e.g. Expansion Likelihood, Next Best Action…" style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+                <label style={{ fontSize: "var(--font-size-xs)", color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Column Name *</label>
+                <input value={aiName} onChange={e => setAiName(e.target.value)} placeholder="e.g. Expansion Likelihood, Next Best Action…" style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
               </div>
               <div>
-                <label style={{ fontSize: 11, color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Reference Columns <span style={{ fontWeight: 400, textTransform: "none" }}>— click to insert</span></label>
+                <label style={{ fontSize: "var(--font-size-xs)", color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Reference Columns <span style={{ fontWeight: 400, textTransform: "none" }}>— click to insert</span></label>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {[...NATIVE_COLS.map(c => c.label), ...DEFAULT_INTEGRATION_COLS.map(c => c.label), ...existingCols.map(c => c.label)].map(name => (
                     <button key={name} onClick={() => insertRef(name)} style={{
-                      padding: "4px 10px", borderRadius: 6, border: "1px solid #E9D5FF", background: "#FAF5FF",
-                      color: "#6D28D9", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit"
+                      padding: "4px 10px", borderRadius: "var(--radius-md)", border: "1px solid #E9D5FF", background: "var(--color-purple-subtle)",
+                      color: "var(--color-purple)", fontSize: "var(--font-size-xs)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit"
                     }}>
                       {`{{`} {name} {`}}`}
                     </button>
@@ -291,29 +291,29 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
               </div>
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <label style={{ fontSize: 11, color: L.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Prompt *</label>
-                  {aiPrompt && <button onClick={() => setAiPrompt("")} style={{ background: "none", border: "none", color: L.textDim, fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>Clear</button>}
+                  <label style={{ fontSize: "var(--font-size-xs)", color: L.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Prompt *</label>
+                  {aiPrompt && <button onClick={() => setAiPrompt("")} style={{ background: "none", border: "none", color: L.textDim, fontSize: "var(--font-size-xs)", cursor: "pointer", fontFamily: "inherit" }}>Clear</button>}
                 </div>
-                <textarea ref={promptRef} value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} rows={5} placeholder='e.g. Based on {{Buying Stage}} and {{Intent Keywords}}, what is the likelihood of expansion in the next 90 days? If {{Competitor Mentioned}} contains Yes, flag as high risk. Respond: High / Medium / Low + one-sentence reason.' style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
-                <div style={{ fontSize: 11, color: L.textDim, marginTop: 4 }}>Use {"{{Column Name}}"} to reference any column in your prompt</div>
+                <textarea ref={promptRef} value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} rows={5} placeholder='e.g. Based on {{Buying Stage}} and {{Intent Keywords}}, what is the likelihood of expansion in the next 90 days? If {{Competitor Mentioned}} contains Yes, flag as high risk. Respond: High / Medium / Low + one-sentence reason.' style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} />
+                <div style={{ fontSize: "var(--font-size-xs)", color: L.textDim, marginTop: 4 }}>Use {"{{Column Name}}"} to reference any column in your prompt</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Output Format</label>
-                  <select value={aiFormat} onChange={e => setAiFormat(e.target.value)} style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", outline: "none" }}>
+                  <label style={{ fontSize: "var(--font-size-xs)", color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Output Format</label>
+                  <select value={aiFormat} onChange={e => setAiFormat(e.target.value)} style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", outline: "none" }}>
                     {["Free text","High / Medium / Low","Score (0–100)","Yes / No","Short label"].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Model</label>
-                  <select value={aiModel} onChange={e => setAiModel(e.target.value)} style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", outline: "none" }}>
+                  <label style={{ fontSize: "var(--font-size-xs)", color: L.textMuted, textTransform: "uppercase", fontWeight: 600, display: "block", marginBottom: 6 }}>Model</label>
+                  <select value={aiModel} onChange={e => setAiModel(e.target.value)} style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", outline: "none" }}>
                     {["RevvyAI","GPT-4o","GPT-5","Claude 3.5","Gemini 1.5 Pro"].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
               </div>
               {showPreview && (
-                <div style={{ padding: 16, borderRadius: 8, background: "#FAF5FF", border: "1px solid #E9D5FF" }}>
-                  <div style={{ fontSize: 11, color: "#7C3AED", fontWeight: 700, marginBottom: 4 }}>✦ LIVE PREVIEW — FIRST 3 ACCOUNTS {refs.length > 0 && <span style={{ fontWeight: 400, marginLeft: 8 }}>Using: {refs.map(r => `{{${r}}}`).join(", ")}</span>}</div>
+                <div style={{ padding: 16, borderRadius: "var(--radius-lg)", background: "var(--color-purple-subtle)", border: "1px solid #E9D5FF" }}>
+                  <div style={{ fontSize: "var(--font-size-xs)", color: "var(--color-purple)", fontWeight: 700, marginBottom: 4 }}>✦ LIVE PREVIEW — FIRST 3 ACCOUNTS {refs.length > 0 && <span style={{ fontWeight: 400, marginLeft: 8 }}>Using: {refs.map(r => `{{${r}}}`).join(", ")}</span>}</div>
                   <div style={{ borderTop: "1px solid #E9D5FF", marginTop: 8, paddingTop: 8, display: "grid", gap: 6 }}>
                     {previewAccounts.map(a => {
                       let val;
@@ -321,9 +321,9 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
                       else if (aiFormat === "Score (0–100)") val = a.sixsenseScore;
                       else val = a.intentLevel === "High" ? `High — Active ${a.stage.toLowerCase()} with strong intent signals.` : `Low — Early stage, limited engagement detected.`;
                       return (
-                        <div key={a.id} style={{ display: "flex", gap: 12, fontSize: 12 }}>
+                        <div key={a.id} style={{ display: "flex", gap: 12, fontSize: "var(--font-size-sm)" }}>
                           <span style={{ fontWeight: 600, color: L.text, minWidth: 100 }}>{a.name}</span>
-                          <span style={{ color: "#6D28D9" }}>{val}</span>
+                          <span style={{ color: "var(--color-purple)" }}>{val}</span>
                         </div>
                       );
                     })}
@@ -337,15 +337,15 @@ function DataMarketplaceDrawer({ onClose, onAddColumn, existingCols, accounts })
         <div style={{ padding: "16px 20px", borderTop: "1px solid #e5e7eb" }}>
           {tab === "revvyai" ? (
             <button onClick={handleGenerateAI} disabled={!aiName || !aiPrompt} style={{
-              width: "100%", padding: "12px", borderRadius: 8, border: "none",
-              background: aiName && aiPrompt ? "linear-gradient(135deg, #7C3AED, #0D9488)" : "#e5e7eb",
-              color: aiName && aiPrompt ? "#fff" : "#9ca3af", fontSize: 14, fontWeight: 700, cursor: aiName && aiPrompt ? "pointer" : "default", fontFamily: "inherit"
+              width: "100%", padding: "12px", borderRadius: "var(--radius-lg)", border: "none",
+              background: aiName && aiPrompt ? "linear-gradient(135deg, #7C3AED, #0D9488)" : "var(--color-border)",
+              color: aiName && aiPrompt ? "var(--color-bg-card)" : "var(--color-text-muted)", fontSize: "var(--font-size-md)", fontWeight: 700, cursor: aiName && aiPrompt ? "pointer" : "default", fontFamily: "inherit"
             }}>✦ Generate Column with RevvyAI</button>
           ) : (
             <button onClick={handleAdd} disabled={!selected} style={{
-              width: "100%", padding: "12px", borderRadius: 8, border: "none",
-              background: selected ? "#0D9488" : "#e5e7eb",
-              color: selected ? "#fff" : "#9ca3af", fontSize: 14, fontWeight: 700, cursor: selected ? "pointer" : "default", fontFamily: "inherit"
+              width: "100%", padding: "12px", borderRadius: "var(--radius-lg)", border: "none",
+              background: selected ? "var(--color-sixsense)" : "var(--color-border)",
+              color: selected ? "var(--color-bg-card)" : "var(--color-text-muted)", fontSize: "var(--font-size-md)", fontWeight: 700, cursor: selected ? "pointer" : "default", fontFamily: "inherit"
             }}>Add Column →</button>
           )}
         </div>
@@ -430,21 +430,21 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
 
   const isNative = (colId) => NATIVE_COLS.some(c => c.id === colId);
 
-  const stageColor = (v) => v === "Decision" ? "#059669" : v === "Consideration" ? "#D97706" : v === "Awareness" ? "#2563EB" : v === "Customer" ? "#0D9488" : "#9CA3AF";
-  const riskColor = (v) => { if (typeof v !== "string") return L.text; if (v.startsWith("High")) return "#DC2626"; if (v.startsWith("Medium")) return "#D97706"; if (v.startsWith("Low")) return "#059669"; return L.textMuted; };
+  const stageColor = (v) => v === "Decision" ? "var(--color-success)" : v === "Consideration" ? "var(--color-warning)" : v === "Awareness" ? "var(--color-info)" : v === "Customer" ? "var(--color-sixsense)" : "var(--color-text-muted)";
+  const riskColor = (v) => { if (typeof v !== "string") return L.text; if (v.startsWith("High")) return "var(--color-danger)"; if (v.startsWith("Medium")) return "var(--color-warning)"; if (v.startsWith("Low")) return "var(--color-success)"; return L.textMuted; };
 
   const renderCellContent = (colId, value) => {
     if (colId === "buying_stage") return <span style={{ color: stageColor(value), fontWeight: 700 }}>{value}</span>;
     if (colId === "comp_risk") return <span style={{ color: riskColor(value), fontWeight: value !== "None" ? 600 : 400 }}>{value}</span>;
     if (colId === "health_score" && value !== "—") {
-      const n = parseInt(value); const c = n > 70 ? "#059669" : n > 40 ? "#D97706" : "#DC2626";
+      const n = parseInt(value); const c = n > 70 ? "var(--color-success)" : n > 40 ? "var(--color-warning)" : "var(--color-danger)";
       return <span style={{ color: c, fontWeight: 700 }}>{value}</span>;
     }
     if (colId === "gong_competitor") {
-      if (typeof value === "string" && value.startsWith("Yes")) return <span style={{ color: "#DC2626", fontWeight: 600 }}>{value}</span>;
+      if (typeof value === "string" && value.startsWith("Yes")) return <span style={{ color: "var(--color-danger)", fontWeight: 600 }}>{value}</span>;
       return <span style={{ color: L.textDim }}>{value}</span>;
     }
-    if (typeof value === "string" && value.startsWith("✓")) return <span style={{ color: "#059669", fontWeight: 600 }}>{value}</span>;
+    if (typeof value === "string" && value.startsWith("✓")) return <span style={{ color: "var(--color-success)", fontWeight: 600 }}>{value}</span>;
     if (value === "— Not triggered") return <span style={{ color: L.textDim }}>{value}</span>;
     return <span style={{ color: L.text }}>{value || "—"}</span>;
   };
@@ -458,37 +458,37 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
   const displayCols = (colOrder || [...NATIVE_COLS.map(c => c.id), ...allDynamicCols.map(c => c.id)]).filter(id => getCol(id));
 
   return (
-    <div style={{ background: "#f8f9fb", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "var(--color-bg)", height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <div style={{ padding: "16px 24px", background: "#fff", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "16px 24px", background: "var(--color-bg-card)", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {srcIcon("sixsense", 18)}
-          <span style={{ fontSize: 14, color: L.textMuted }}>Sales Intelligence ›</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: L.text }}>Account Intelligence View</span>
-          <span style={{ padding: "2px 10px", borderRadius: 10, background: "#FAF5FF", color: "#7C3AED", fontSize: 11, fontWeight: 700 }}>BYOD PROTOTYPE</span>
+          <span style={{ fontSize: "var(--font-size-md)", color: L.textMuted }}>Sales Intelligence ›</span>
+          <span style={{ fontSize: "var(--font-size-md)", fontWeight: 700, color: L.text }}>Account Intelligence View</span>
+          <span style={{ padding: "2px 10px", borderRadius: "var(--radius-xl)", background: "var(--color-purple-subtle)", color: "var(--color-purple)", fontSize: "var(--font-size-xs)", fontWeight: 700 }}>BYOD PROTOTYPE</span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {onToggleMode && <button onClick={onToggleMode} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: L.textMuted, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>🌙 Dark View</button>}
-          <button onClick={() => setDrawerOpen(true)} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#0D9488", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>+ Add Data Column</button>
+          {onToggleMode && <button onClick={onToggleMode} style={{ padding: "8px 14px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", background: "var(--color-bg-card)", color: L.textMuted, fontSize: "var(--font-size-sm)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>🌙 Dark View</button>}
+          <button onClick={() => setDrawerOpen(true)} style={{ padding: "8px 16px", borderRadius: "var(--radius-lg)", border: "none", background: "var(--color-sixsense)", color: "var(--color-bg-card)", fontSize: "var(--font-size-sm)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>+ Add Data Column</button>
         </div>
       </div>
 
       {/* Filter bar */}
-      <div style={{ padding: "10px 24px", background: "#fff", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ padding: "10px 24px", background: "var(--color-bg-card)", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ position: "relative", flex: 1, maxWidth: 300 }}>
           <span style={{ position: "absolute", left: 10, top: 9, color: L.textDim }}>🔍</span>
-          <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search accounts…" style={{ width: "100%", padding: "8px 12px 8px 32px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, fontFamily: "inherit", outline: "none" }} />
+          <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search accounts…" style={{ width: "100%", padding: "8px 12px 8px 32px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-base)", fontFamily: "inherit", outline: "none" }} />
         </div>
-        <select value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 12, fontFamily: "inherit", outline: "none", color: L.textMuted }}>
+        <select value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-sm)", fontFamily: "inherit", outline: "none", color: L.textMuted }}>
           <option value="all">All Buying Stages</option>
           {["Decision","Consideration","Awareness","Customer"].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 12, fontFamily: "inherit", outline: "none", color: L.textMuted }}>
+        <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid #e5e7eb", fontSize: "var(--font-size-sm)", fontFamily: "inherit", outline: "none", color: L.textMuted }}>
           <option value="all">All Account Types</option>
           <option value="Customer">Customer</option>
           <option value="Prospect">Prospect</option>
         </select>
-        <span style={{ marginLeft: "auto", fontSize: 12, color: L.textMuted }}>Showing {filteredAccounts.length} accounts</span>
+        <span style={{ marginLeft: "auto", fontSize: "var(--font-size-sm)", color: L.textMuted }}>Showing {filteredAccounts.length} accounts</span>
       </div>
 
       {/* Table */}
@@ -497,7 +497,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
           <thead>
             <tr>
               {/* Sticky company col header */}
-              <th style={{ position: "sticky", left: 0, zIndex: 10, background: "#fff", padding: "10px 16px", textAlign: "left", borderBottom: "1px solid #e5e7eb", borderTop: "3px solid #0D9488", fontWeight: 600, fontSize: 11, color: L.textDim, textTransform: "uppercase", minWidth: 240 }}>
+              <th style={{ position: "sticky", left: 0, zIndex: 10, background: "var(--color-bg-card)", padding: "10px 16px", textAlign: "left", borderBottom: "1px solid #e5e7eb", borderTop: "3px solid #0D9488", fontWeight: 600, fontSize: "var(--font-size-xs)", color: L.textDim, textTransform: "uppercase", minWidth: 240 }}>
                 {srcIcon("sixsense", 12)} Company
               </th>
               {displayCols.map(colId => {
@@ -514,19 +514,19 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
                     style={{
                       padding: "8px 14px", textAlign: "left",
                       borderBottom: "1px solid #e5e7eb", borderTop: `3px solid ${src.color}`,
-                      background: dragCol === colId ? "#F0FDF4" : "#fff",
-                      fontWeight: 600, fontSize: 11, color: L.textDim, minWidth: 150,
+                      background: dragCol === colId ? "var(--color-success-subtle)" : "var(--color-bg-card)",
+                      fontWeight: 600, fontSize: "var(--font-size-xs)", color: L.textDim, minWidth: 150,
                       cursor: "grab", userSelect: "none", position: "relative"
                     }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       {srcIcon(col.source, 12)}
                       <div>
-                        <div style={{ color: L.text, textTransform: "none", fontSize: 12, fontWeight: 600 }}>{col.label}</div>
+                        <div style={{ color: L.text, textTransform: "none", fontSize: "var(--font-size-sm)", fontWeight: 600 }}>{col.label}</div>
                         <div style={{ color: L.textDim, fontSize: 10, textTransform: "uppercase", fontWeight: 500 }}>{src.name}</div>
                       </div>
                     </div>
                     {!native && (
-                      <button onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }} style={{ position: "absolute", top: 6, right: 6, background: "none", border: "none", color: L.textDim, fontSize: 13, cursor: "pointer", lineHeight: 1 }} title="Remove column">×</button>
+                      <button onClick={e => { e.stopPropagation(); handleRemoveCol(colId); }} style={{ position: "absolute", top: 6, right: 6, background: "none", border: "none", color: L.textDim, fontSize: "var(--font-size-base)", cursor: "pointer", lineHeight: 1 }} title="Remove column">×</button>
                     )}
                   </th>
                 );
@@ -534,7 +534,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
               {/* Add column header */}
               <th onClick={() => setDrawerOpen(true)} style={{
                 padding: "10px 16px", textAlign: "center", borderBottom: "1px solid #e5e7eb", borderTop: "3px solid #059669",
-                background: "#F0FDF4", cursor: "pointer", minWidth: 120, fontWeight: 700, fontSize: 12, color: "#059669"
+                background: "var(--color-success-subtle)", cursor: "pointer", minWidth: 120, fontWeight: 700, fontSize: "var(--font-size-sm)", color: "var(--color-success)"
               }}>
                 ＋ Add Column
               </th>
@@ -543,16 +543,16 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
           <tbody>
             {filteredAccounts.map(a => (
               <tr key={a.id} style={{ borderBottom: "1px solid #f3f4f6" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "#f9fafb"; }}
+                onMouseEnter={e => { e.currentTarget.style.background = "var(--color-bg-hover)"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
               >
                 {/* Sticky company cell */}
                 <td onClick={() => onAccountClick(a)} style={{ position: "sticky", left: 0, zIndex: 5, background: "inherit", padding: "12px 16px", cursor: "pointer" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 6, background: hashColor(a.name) + "18", border: `1.5px solid ${hashColor(a.name)}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: hashColor(a.name), flexShrink: 0 }}>{a.name.charAt(0)}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: "var(--radius-md)", background: hashColor(a.name) + "18", border: `1.5px solid ${hashColor(a.name)}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "var(--font-size-sm)", fontWeight: 700, color: hashColor(a.name), flexShrink: 0 }}>{a.name.charAt(0)}</div>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: L.text }}>{a.name}</div>
-                      <div style={{ fontSize: 11, color: L.textDim }}>{a.stage === "Customer" ? "Customer" : "Prospect"} · {a.revenue}</div>
+                      <div style={{ fontSize: "var(--font-size-base)", fontWeight: 600, color: L.text }}>{a.name}</div>
+                      <div style={{ fontSize: "var(--font-size-xs)", color: L.textDim }}>{a.stage === "Customer" ? "Customer" : "Prospect"} · {a.revenue}</div>
                     </div>
                   </div>
                 </td>
@@ -565,7 +565,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
                         const col = getCol(colId);
                         setEditingCell({ colId, accountId: a.id, accountName: a.name, colLabel: col?.label || colId, value: String(value), rect });
                       }}
-                      style={{ padding: "12px 14px", cursor: "pointer", fontSize: 13 }}>
+                      style={{ padding: "12px 14px", cursor: "pointer", fontSize: "var(--font-size-base)" }}>
                       {renderCellContent(colId, value)}
                     </td>
                   );
@@ -578,7 +578,7 @@ export default function AccountsView({ accounts, search, onSearch, onAccountClic
       </div>
 
       {/* Footer legend */}
-      <div style={{ padding: "10px 24px", background: "#fff", borderTop: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 16, fontSize: 11, color: L.textMuted }}>
+      <div style={{ padding: "10px 24px", background: "var(--color-bg-card)", borderTop: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 16, fontSize: "var(--font-size-xs)", color: L.textMuted }}>
         {activeSources.map(s => (
           <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
